@@ -33,17 +33,17 @@ com.eric.wiki.{模块}
 ├─ controller    # 接口
 ├─ service    # 业务逻辑
 │  ├─ impl    # 默认实现
-│  ├─ listeners    # 事件监听
+│  ├─ listener    # 事件监听
 │  ├─ webservice    # 远程服务调用
 │  └─ task    #  定时任务
 ├─ dao    # 数据访问
 │  └─ impl    # 默认实现
 ├─ model    # 数据模型
-│  ├─ requests    # 请求参数
-│  ├─ responses    # 响应参数
-│  ├─ dtos    # 视图对象
-│  └─ mappers    # 数据转换
-├─ utils    # 工具类
+│  ├─ request    # 请求参数
+│  ├─ response    # 响应参数
+│  ├─ dto    # 视图对象
+│  └─ mapper    # 数据转换
+├─ util    # 工具类
 ├─ properties    # 配置信息
 └─ resolver    # 接口鉴权
 ```

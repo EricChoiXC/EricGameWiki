@@ -13,8 +13,8 @@ EricGameWiki/
 │  ├─ admin/            # 后台管理系统文档
 │  └─ wiki/             # 前台wiki系统文档
 ├─ project/                  # 代码
-│  ├─ backend/            # 后端代码
-│  ├─ adminWeb/            # 后台管理系统前端代码
+│  ├─ wikiService/            # 后端代码
+│  ├─ wikiAdmin/            # 后台管理系统前端代码
 │  └─ wikiWeb/             # 前台wiki系统前端代码
 ├─ AGENTS.md                 # 仓库级协作与开发约束
 └─ README.md
@@ -23,13 +23,13 @@ EricGameWiki/
 后端统一根包路径：
 
 ```text
-com.eric.wiki
+com.wiki.web/com.wiki.admin
 ```
 
 模块开发时必须优先遵循以下包结构：
 
 ```text
-com.eric.wiki.{模块}
+com.wiki.web.{模块}
 ├─ controller    # 接口
 ├─ service    # 业务逻辑
 │  ├─ impl    # 默认实现
@@ -278,7 +278,7 @@ src
 | 附件管理   | attachment   | 附件上传、存储与删除                     |
 | 审计模块   | audit        | 操作自动审计与人工查询                   |
 
-公共系统后端模块统一归入 `com.eric.wiki.sys` 根包。
+公共系统后端模块统一归入 `com.wiki.admin.sys` 根包。
 
 ** WIKI模块：**
 
@@ -286,7 +286,7 @@ src
 | -------------- | ------------- | -------------------------- |
 | WIKI库管理  | wiki         | 项目、数据项、文档项、页面配置           |
 
-WIKI模块后端模块统一归入 `com.eric.wiki.wiki` 根包。
+WIKI模块后端根据调用方归入 `com.wiki.web.wiki` 或 `com.wiki.admin.wiki` 包
 
 ### 通用约束
 

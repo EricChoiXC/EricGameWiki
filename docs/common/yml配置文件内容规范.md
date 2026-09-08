@@ -47,7 +47,7 @@ MODULE: # 模块信息
 > roles.yml
 ```yaml
 ROLES: # 权限信息
-  - KEY: "SYS_ORG_ADMIN" # 权限标识
+  - KEY: "ORG_ADMIN" # 权限标识
     NAME: "系统组织管理员" # 权限名称
     DESC: "拥有所有 `SYS_ORG_*` 权限" # 权限描述
   # ... ...
@@ -80,5 +80,18 @@ PROCESS:
     EXPAND_STEP: # 拓展步骤
       - KEY: "WRITE_OPINION" # 步骤标识
         NAME: "填写意见" # 步骤名称
+  # ... ...
+```
+
+### 配置项内容配置标准
+
+> setting.yml
+```yaml
+SETTING:
+  - KEY: "sys-org::change-password-expire-days"
+    NAME: "密码有效期"
+    DESC: "密码有效期，为 0 时表示不过期，过期时用户登录后强制进行修改密码，单位：天"
+    DEFAULT: "0"
+    TYPE: "integer" # 配置项类型：integer/string/boolean/date/datetime/time/float
   # ... ...
 ```

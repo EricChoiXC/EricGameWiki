@@ -27,7 +27,9 @@ public enum QueryOperator {
     /** 集合包含 */
     IN("in"),
     /** 集合不包含 */
-    NOT_IN("notIn");
+    NOT_IN("notIn"),
+    /** 区间，值为长度 2 的数组 [下界, 上界] */
+    BETWEEN("between");
 
     private final String key;
 

@@ -112,4 +112,21 @@ class QueryConditionDeserializerTest {
         assertEquals("fieldAge", condition.getFieldName());
         assertEquals(30, condition.getValue());
     }
+
+    @Test
+    void deserializeBetweenOperator() throws Exception {
+        String json = """
+                {"between": {"fieldName": ["张三", "王五"]}}
+                """;
+
+        QueryCondition condition = mapper.readValue(json, QueryCondition.class);
+        assertTrue(condition.isLeaf());
+        assertEquals(QueryOperator.BETWEEN, condition.getOperator());
+        assertEquals("fieldName", condition.getFieldName());
+        assertInstanceOf(List.class, condition.getValue());
+        List<?> values = (List<?>) condition.getValue();
+        assertEquals(2, values.size());
+        assertEquals("张三", values.get(0));
+        assertEquals("王五", values.get(1));
+    }
 }

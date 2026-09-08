@@ -1,21 +1,24 @@
 <template>
   <div class="admin-layout">
     <!-- 顶部行（规范第 14 章：至多 120px 或 10% 页面高度） -->
+    <!-- 左侧：系统 logo（默认系统名称图标）+ 系统名称；右侧：用户头像 + 操作（修改密码、登出） -->
     <header class="admin-layout__header">
       <div class="admin-layout__header-left">
-        <el-icon class="admin-layout__header-logo" :size="24"><Menu /></el-icon>
+        <el-icon class="admin-layout__header-logo" :size="24"><Platform /></el-icon>
         <span class="admin-layout__header-title">EricGameWiki 管理后台</span>
       </div>
       <div class="admin-layout__header-right">
         <el-dropdown>
           <span class="admin-layout__header-user">
-            <el-icon><User /></el-icon>
+            <el-avatar :size="28" class="admin-layout__header-avatar">
+              <el-icon><User /></el-icon>
+            </el-avatar>
             <span>管理员</span>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item>个人设置</el-dropdown-item>
-              <el-dropdown-item divided>退出登录</el-dropdown-item>
+              <el-dropdown-item @click="onChangePassword">修改密码</el-dropdown-item>
+              <el-dropdown-item divided @click="onLogout">登出</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -118,8 +121,8 @@ import {
   ArrowLeft,
   ArrowRight,
   HomeFilled,
-  Menu,
   MoreFilled,
+  Platform,
   User
 } from '@element-plus/icons-vue'
 import { useAppStore } from '@/stores/app'
@@ -202,6 +205,16 @@ function scrollTabs(delta) {
   el.scrollLeft += delta
 }
 
+// 修改密码：用户与权限模块就绪后接入弹窗与接口
+function onChangePassword() {
+  // TODO: 修改密码弹窗（用户与权限管理模块）
+}
+
+// 登出：用户与权限模块就绪后接入登出接口与登录页跳转
+function onLogout() {
+  // TODO: 登出接口调用与登录页跳转（用户与权限管理模块）
+}
+
 // 确保激活标签滚动到可见区域
 watch(
   () => appStore.activeTabId,
@@ -250,6 +263,15 @@ watch(
     font-size: var(--font-size-h3);
     font-weight: var(--font-weight-bold);
     color: var(--color-text-primary);
+  }
+
+  &__header-logo {
+    color: var(--color-primary);
+  }
+
+  &__header-avatar {
+    background-color: var(--color-primary-light-9);
+    color: var(--color-primary);
   }
 
   &__header-user {

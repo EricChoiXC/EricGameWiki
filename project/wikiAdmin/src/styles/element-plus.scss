@@ -108,3 +108,104 @@
   justify-content: center;
   padding: var(--spacing-sm) 0;
 }
+
+// =============================================================================
+// 规范第 14 章：列表页
+// =============================================================================
+// 列表页面默认分 3 块 panel，从上而下分别为：筛选区、排序和按钮区、列表区
+.u-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  // ---------------------------------------------------------------------------
+  // 筛选区：el-row / el-col，以 3 栅栏宽划分每行；每个筛选条件占 1 个栅栏
+  // （特殊情况可占多个栅栏，如起止日期、长文本等）
+  // 每个筛选由上部分筛选名和下部分填写组件组成
+  // ---------------------------------------------------------------------------
+  &__filter {
+    .el-row {
+      margin-bottom: 0;
+    }
+
+    .el-col {
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+  }
+
+  &__filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  &__filter-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-regular);
+    font-weight: var(--font-weight-medium);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 排序和按钮区：左侧为排序按钮，右侧为按钮组
+  // 排序按钮表现为无边框无底色的按钮显示排序字段名，选中的排序项变为有边框，
+  // 并在文本末尾显示当前升序/降序图标，仅限单排序
+  // ---------------------------------------------------------------------------
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+
+  &__sort {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+  }
+
+  &__sort-btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border: none;
+    background: transparent;
+    color: var(--color-text-regular);
+    font-size: var(--font-size-body);
+    cursor: pointer;
+    border-radius: var(--radius-base);
+    transition: all var(--transition-fast);
+
+    &:hover {
+      color: var(--color-primary);
+      background-color: var(--color-primary-light-9);
+    }
+
+    // 选中态：有边框 + 末尾升降序图标
+    &.is-active {
+      border: 1px solid var(--color-primary);
+      color: var(--color-primary);
+      background-color: var(--color-primary-light-9);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 列表区：el-table + el-pagination 实现数据列表和分页信息展示
+  // ---------------------------------------------------------------------------
+  &__table {
+    .el-table {
+      th.el-table__cell {
+        background-color: var(--color-border-lighter);
+      }
+    }
+
+    .el-pagination {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: var(--spacing-md);
+    }
+  }
+}

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.sys.org.model.mapper.OrgAuthMapper">
+
+    <resultMap id="authMap" type="com.wiki.admin.sys.org.model.dto.OrgAuthDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_code" property="fieldCode"/>
+        <result column="field_status" property="fieldStatus"/>
+        <result column="field_create_time" property="fieldCreateTime"/>
+    </resultMap>
+
+    <sql id="cols">field_id, field_name, field_code, field_status, field_create_time</sql>
+
+    <select id="selectById" resultMap="authMap">
+        SELECT <include refid="cols"/> FROM admin_org_auth WHERE field_id = #{fieldId}
+    </select>
+
+    <select id="selectByCode" resultMap="authMap">
+        SELECT <include refid="cols"/> FROM admin_org_auth WHERE field_code = #{fieldCode}
+    </select>
+
+    <select id="selectByUserId" resultMap="authMap">
+        SELECT a.field_id, a.field_name, a.field_code, a.field_status, a.field_create_time
+        FROM admin_org_auth a
+        INNER JOIN admin_org_auth_user au ON a.field_id = au.field_auth_id
+        WHERE au.field_user_id = #{fieldUserId}
+        ORDER BY a.field_create_time DESC
+    </select>
+
+    <select id="selectByCondition" resultMap="authMap">
+        SELECT <include refid="cols"/> FROM admin_org_auth
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+        <if test="orderBySql != null and orderBySql != ''"> ${orderBySql} </if>
+        <if test="needPage"> LIMIT #{pageSize} OFFSET #{offset} </if>
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(1) FROM admin_org_auth
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+    </select>
+
+    <select id="selectAll" resultMap="authMap">
+        SELECT <include refid="cols"/> FROM admin_org_auth ORDER BY field_create_time DESC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO admin_org_auth (field_id, field_name, field_code, field_status, field_create_time)
+        VALUES (#{fieldId}, #{fieldName}, #{fieldCode}, #{fieldStatus}, #{fieldCreateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE admin_org_auth
+        <set>
+            <if test="fieldName != null">field_name = #{fieldName},</if>
+            <if test="fieldCode != null">field_code = #{fieldCode},</if>
+            <if test="fieldStatus != null">field_status = #{fieldStatus},</if>
+        </set>
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE admin_org_auth SET field_status = #{fieldStatus} WHERE field_id = #{fieldId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM admin_org_auth WHERE field_id = #{fieldId}
+    </delete>
+
+</mapper>

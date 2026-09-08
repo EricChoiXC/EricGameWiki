@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.sys.org.model.mapper.OrgRoleMapper">
+
+    <resultMap id="roleMap" type="com.wiki.admin.sys.org.model.dto.OrgRoleDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_code" property="fieldCode"/>
+        <result column="field_status" property="fieldStatus"/>
+    </resultMap>
+
+    <sql id="cols">field_id, field_name, field_code, field_status</sql>
+
+    <select id="selectById" resultMap="roleMap">
+        SELECT <include refid="cols"/> FROM admin_org_role WHERE field_id = #{fieldId}
+    </select>
+
+    <select id="selectByIds" resultMap="roleMap">
+        SELECT <include refid="cols"/> FROM admin_org_role
+        WHERE field_id IN
+        <foreach collection="fieldIds" item="id" open="(" close=")" separator=",">#{id}</foreach>
+    </select>
+
+    <select id="selectByCode" resultMap="roleMap">
+        SELECT <include refid="cols"/> FROM admin_org_role WHERE field_code = #{fieldCode}
+    </select>
+
+    <select id="selectByCodes" resultMap="roleMap">
+        SELECT <include refid="cols"/> FROM admin_org_role
+        WHERE field_code IN
+        <foreach collection="fieldCodes" item="code" open="(" close=")" separator=",">#{code}</foreach>
+    </select>
+
+    <select id="selectByCondition" resultMap="roleMap">
+        SELECT <include refid="cols"/> FROM admin_org_role
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+        <if test="orderBySql != null and orderBySql != ''"> ${orderBySql} </if>
+        <if test="needPage"> LIMIT #{pageSize} OFFSET #{offset} </if>
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(1) FROM admin_org_role
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+    </select>
+
+    <select id="selectAll" resultMap="roleMap">
+        SELECT <include refid="cols"/> FROM admin_org_role ORDER BY field_code ASC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO admin_org_role (field_id, field_name, field_code, field_status)
+        VALUES (#{fieldId}, #{fieldName}, #{fieldCode}, #{fieldStatus})
+    </insert>
+
+    <update id="update">
+        UPDATE admin_org_role
+        <set>
+            <if test="fieldName != null">field_name = #{fieldName},</if>
+            <if test="fieldCode != null">field_code = #{fieldCode},</if>
+            <if test="fieldStatus != null">field_status = #{fieldStatus},</if>
+        </set>
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE admin_org_role SET field_status = #{fieldStatus} WHERE field_id = #{fieldId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM admin_org_role WHERE field_id = #{fieldId}
+    </delete>
+
+</mapper>

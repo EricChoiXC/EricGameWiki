@@ -1,0 +1,7 @@
+ROLES:
+  - KEY: "admin-org::USER"
+    NAME: "用户管理员"
+    DESC: "添加、修改、操作用户"
+  - KEY: "admin-org::ROLE"
+    NAME: "角色管理员"
+    DESC: "添加、修改、操作角色"

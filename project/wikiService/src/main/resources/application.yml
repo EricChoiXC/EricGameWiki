@@ -1,0 +1,37 @@
+server:
+  port: 8081
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: wikiService
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/eric_game_wiki?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    table: admin_flyway_schema_history
+  sql:
+    init:
+      mode: never
+
+mybatis:
+  mapper-locations: classpath*:*/mappers/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+  type-aliases-package: com.wiki.**.model.dto
+
+wiki:
+  jwt:
+    secret: "EricGameWikiJwtSecret2026ForSigningTokenMustBeLongEnough"
+    expire-minutes: 720
+    issuer: "wikiService"

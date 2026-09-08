@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.sys.org.model.mapper.OrgAuthUserMapper">
+
+    <select id="selectUserIdsByAuthId" resultType="java.lang.String">
+        SELECT field_user_id FROM admin_org_auth_user WHERE field_auth_id = #{fieldAuthId}
+    </select>
+
+    <select id="selectAuthIdsByUserId" resultType="java.lang.String">
+        SELECT field_auth_id FROM admin_org_auth_user WHERE field_user_id = #{fieldUserId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO admin_org_auth_user (field_auth_id, field_user_id)
+        VALUES (#{fieldAuthId}, #{fieldUserId})
+    </insert>
+
+    <delete id="deleteByAuthId">
+        DELETE FROM admin_org_auth_user WHERE field_auth_id = #{fieldAuthId}
+    </delete>
+
+    <delete id="deleteByAuthIdAndUserId">
+        DELETE FROM admin_org_auth_user
+        WHERE field_auth_id = #{fieldAuthId} AND field_user_id = #{fieldUserId}
+    </delete>
+
+</mapper>

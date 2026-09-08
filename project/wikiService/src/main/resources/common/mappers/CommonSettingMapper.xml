@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.sys.common.model.mapper.CommonSettingMapper">
+
+    <resultMap id="commonSettingMap" type="com.wiki.admin.sys.common.model.dto.CommonSettingDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_code" property="fieldCode"/>
+        <result column="field_value" property="fieldValue"/>
+        <result column="field_default" property="fieldDefault"/>
+        <result column="field_type" property="fieldType"/>
+    </resultMap>
+
+    <sql id="cols">field_id, field_name, field_code, field_value, field_default, field_type</sql>
+
+    <select id="selectByCode" resultMap="commonSettingMap">
+        SELECT <include refid="cols"/>
+        FROM admin_common_setting
+        WHERE field_code = #{fieldCode}
+    </select>
+
+    <select id="selectAll" resultMap="commonSettingMap">
+        SELECT <include refid="cols"/>
+        FROM admin_common_setting
+        ORDER BY field_code ASC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO admin_common_setting
+        (field_id, field_name, field_code, field_value, field_default, field_type)
+        VALUES
+        (#{fieldId}, #{fieldName}, #{fieldCode}, #{fieldValue}, #{fieldDefault}, #{fieldType})
+    </insert>
+
+    <update id="updateMeta">
+        UPDATE admin_common_setting
+        SET field_name   = #{fieldName},
+            field_default = #{fieldDefault},
+            field_type   = #{fieldType}
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updateValue">
+        UPDATE admin_common_setting
+        SET field_value = #{fieldValue}
+        WHERE field_id = #{fieldId}
+    </update>
+
+</mapper>

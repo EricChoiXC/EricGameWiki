@@ -1,0 +1,4 @@
+MODULE:
+  MODEL_NAME: "admin-org"
+  MODEL_DESC: "用户与权限模块"
+  VERSION: "V1.0.20260908.0"

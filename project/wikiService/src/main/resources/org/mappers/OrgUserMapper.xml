@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.sys.org.model.mapper.OrgUserMapper">
+
+    <resultMap id="userMap" type="com.wiki.admin.sys.org.model.dto.OrgUserDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_login_name" property="fieldLoginName"/>
+        <result column="field_password" property="fieldPassword"/>
+        <result column="field_phone" property="fieldPhone"/>
+        <result column="field_email" property="fieldEmail"/>
+        <result column="field_status" property="fieldStatus"/>
+        <result column="field_create_time" property="fieldCreateTime"/>
+        <result column="field_update_time" property="fieldUpdateTime"/>
+        <result column="field_last_login_time" property="fieldLastLoginTime"/>
+        <result column="field_last_login_ip" property="fieldLastLoginIp"/>
+        <result column="field_lock_flag" property="fieldLockFlag"/>
+        <result column="field_unlock_time" property="fieldUnlockTime"/>
+    </resultMap>
+
+    <sql id="cols">field_id, field_name, field_login_name, field_password, field_phone, field_email,
+        field_status, field_create_time, field_update_time, field_last_login_time, field_last_login_ip,
+        field_lock_flag, field_unlock_time</sql>
+
+    <select id="selectById" resultMap="userMap">
+        SELECT <include refid="cols"/> FROM admin_org_user WHERE field_id = #{fieldId}
+    </select>
+
+    <select id="selectByLoginName" resultMap="userMap">
+        SELECT <include refid="cols"/> FROM admin_org_user WHERE field_login_name = #{fieldLoginName}
+    </select>
+
+    <select id="selectByPhone" resultMap="userMap">
+        SELECT <include refid="cols"/> FROM admin_org_user WHERE field_phone = #{fieldPhone}
+    </select>
+
+    <select id="selectByEmail" resultMap="userMap">
+        SELECT <include refid="cols"/> FROM admin_org_user WHERE field_email = #{fieldEmail}
+    </select>
+
+    <select id="selectByCondition" resultMap="userMap">
+        SELECT <include refid="cols"/> FROM admin_org_user
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+        <if test="orderBySql != null and orderBySql != ''"> ${orderBySql} </if>
+        <if test="needPage"> LIMIT #{pageSize} OFFSET #{offset} </if>
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(1) FROM admin_org_user
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO admin_org_user
+        (field_id, field_name, field_login_name, field_password, field_phone, field_email,
+         field_status, field_create_time, field_update_time, field_last_login_time, field_last_login_ip,
+         field_lock_flag, field_unlock_time)
+        VALUES
+        (#{fieldId}, #{fieldName}, #{fieldLoginName}, #{fieldPassword}, #{fieldPhone}, #{fieldEmail},
+         #{fieldStatus}, #{fieldCreateTime}, #{fieldUpdateTime}, #{fieldLastLoginTime}, #{fieldLastLoginIp},
+         #{fieldLockFlag}, #{fieldUnlockTime})
+    </insert>
+
+    <update id="update">
+        UPDATE admin_org_user
+        <set>
+            <if test="fieldName != null">field_name = #{fieldName},</if>
+            <if test="fieldLoginName != null">field_login_name = #{fieldLoginName},</if>
+            <if test="fieldPhone != null">field_phone = #{fieldPhone},</if>
+            <if test="fieldEmail != null">field_email = #{fieldEmail},</if>
+            <if test="fieldStatus != null">field_status = #{fieldStatus},</if>
+            <if test="fieldUpdateTime != null">field_update_time = #{fieldUpdateTime},</if>
+            <if test="fieldLockFlag != null">field_lock_flag = #{fieldLockFlag},</if>
+            <if test="fieldUnlockTime != null">field_unlock_time = #{fieldUnlockTime},</if>
+        </set>
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE admin_org_user SET field_password = #{fieldPassword}, field_update_time = NOW()
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updateLastLogin">
+        UPDATE admin_org_user
+        SET field_last_login_time = #{fieldLoginTime}, field_last_login_ip = #{fieldLoginIp}
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE admin_org_user SET field_status = #{fieldStatus}, field_update_time = NOW()
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updateLock">
+        UPDATE admin_org_user
+        SET field_lock_flag = #{fieldLockFlag},
+            field_unlock_time = #{fieldUnlockTime},
+            field_update_time = NOW()
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="unlockExpired">
+        UPDATE admin_org_user
+        SET field_lock_flag = 0, field_unlock_time = NULL, field_update_time = NOW()
+        WHERE field_lock_flag = 1 AND field_unlock_time IS NOT NULL AND field_unlock_time &lt;= #{now}
+    </update>
+
+</mapper>

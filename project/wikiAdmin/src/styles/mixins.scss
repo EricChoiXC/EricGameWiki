@@ -1,0 +1,183 @@
+// =============================================================================
+// mixins.scss
+// 公共 mixin / 工具函数
+// 规范章节：docs/common/前端公共样式规范.md 第 3.1 章
+// 命名遵循 BEM 规范（docs/common/开发规范.md）
+// =============================================================================
+
+@use 'sass:math';
+@use 'variables' as *;
+
+// -----------------------------------------------------------------------------
+// 文本相关
+// -----------------------------------------------------------------------------
+
+/// 单行文本溢出省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/// 多行文本溢出省略
+/// @param {Number} $lines [2] 行数
+@mixin text-ellipsis-multi($lines: 2) {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
+}
+
+/// 文字隐藏（用于无障碍 / 视觉隐藏）
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// -----------------------------------------------------------------------------
+// 布局相关
+// -----------------------------------------------------------------------------
+
+/// 清除浮动
+@mixin clearfix {
+  &::after {
+    display: block;
+    clear: both;
+    height: 0;
+    visibility: hidden;
+    content: '';
+  }
+}
+
+/// Flex 居中（水平 + 垂直）
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/// Flex 两端对齐
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/// 绝对定位铺满父级
+@mixin absolute-fill {
+  position: absolute;
+  inset: 0;
+}
+
+// -----------------------------------------------------------------------------
+// 滚动条
+// -----------------------------------------------------------------------------
+
+/// 自定义滚动条（Webkit 内核）
+/// @param {Number} $width [6px] 滚动条宽度
+/// @param {Color} $thumb [var(--color-border)] 滑块颜色
+/// @param {Color} $track [transparent] 轨道颜色
+@mixin scrollbar($width: 6px, $thumb: var(--color-border), $track: transparent) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $thumb;
+    border-radius: var(--radius-base);
+    transition: background var(--transition-fast);
+
+    &:hover {
+      background: var(--color-text-secondary);
+    }
+  }
+
+  // Firefox
+  scrollbar-width: thin;
+  scrollbar-color: $thumb $track;
+}
+
+// -----------------------------------------------------------------------------
+// 视觉效果
+// -----------------------------------------------------------------------------
+
+/// 卡片基础样式（4.4 圆角 + 4.5 阴影 + 4.3 内边距）
+/// @param {String} $shadow [base] 阴影档位：sm / base / lg
+@mixin card($shadow: base) {
+  background-color: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+
+  @if $shadow == sm {
+    box-shadow: var(--shadow-sm);
+  } @else if $shadow == lg {
+    box-shadow: var(--shadow-lg);
+  } @else {
+    box-shadow: var(--shadow-base);
+  }
+}
+
+/// 截断超出区域
+@mixin truncate-overflow {
+  overflow: hidden;
+}
+
+// -----------------------------------------------------------------------------
+// BEM 辅助
+// -----------------------------------------------------------------------------
+
+/// BEM 块元素辅助：将当前选择器套上 __element
+/// @example .foo { @include b(bar) { color: red; } } => .foo__bar { color: red; }
+@mixin b($element) {
+  &__#{$element} {
+    @content;
+  }
+}
+
+/// BEM 修饰符辅助：将当前选择器套上 --modifier
+/// @example .foo { @include m(active) { color: red; } } => .foo--active { color: red; }
+@mixin m($modifier) {
+  &--#{$modifier} {
+    @content;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 响应式断点
+// 规范第 5 章为 TBD，预留 mixin 占位，待后续补全断点值后启用
+// -----------------------------------------------------------------------------
+
+/// 媒体查询占位：当前仅做 min-width，待断点确定后填充
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == xs {
+    // TBD：移动端断点
+    @content;
+  } @else if $breakpoint == sm {
+    // TBD：平板竖屏断点
+    @content;
+  } @else if $breakpoint == md {
+    // TBD：平板横屏 / 小屏笔记本断点
+    @content;
+  } @else if $breakpoint == lg {
+    // TBD：桌面显示器断点
+    @content;
+  } @else if $breakpoint == xl {
+    // TBD：大屏显示器断点
+    @content;
+  } @else {
+    @content;
+  }
+}

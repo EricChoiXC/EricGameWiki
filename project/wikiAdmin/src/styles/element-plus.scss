@@ -1,0 +1,110 @@
+// =============================================================================
+// element-plus.scss
+// Element Plus 组件级微调
+// 规范章节：docs/common/前端公共样式规范.md 第 8.1 章
+// 约束：
+//   1. 沿用官方默认主题色 #409eff，禁止在业务样式中修改 --el-* 变量
+//   2. 仅做组件级微调（如全局字号、表单 label 宽度、表格行高），
+//   3. 暗色模式样式不参与构建
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 全局字号同步：与项目令牌保持一致（规范第 4.2.2 章）
+// -----------------------------------------------------------------------------
+:root {
+  --el-font-size-base: var(--font-size-body);
+  --el-font-size-small: var(--font-size-sm);
+  --el-font-size-extra-small: var(--font-size-xs);
+}
+
+// -----------------------------------------------------------------------------
+// 表单：统一 label 宽度，避免每个表单各自设宽度
+// -----------------------------------------------------------------------------
+.el-form-item {
+  .el-form-item__label {
+    width: 100px;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 表格：表头背景色（规范第 7.4 章 / 第 14 章明细表）
+// -----------------------------------------------------------------------------
+.el-table {
+  th.el-table__cell {
+    background-color: var(--color-border-lighter);
+  }
+}
+
+// =============================================================================
+// 规范第 14 章：表格（按表形式列出的对象数据）
+// =============================================================================
+// 12 栅栏，1:3:1:3:1:3 比例；字段名块背景 #EBEEF5；字段值块不设背景
+.u-form-table {
+  .el-row {
+    margin-bottom: 0;
+  }
+
+  .el-col {
+    border: 1px solid var(--color-border-lighter);
+    min-height: 32px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: flex;
+    align-items: center;
+  }
+
+  &__label {
+    background-color: var(--color-border-lighter);
+    color: var(--color-text-regular);
+    font-weight: var(--font-weight-medium);
+    justify-content: center;
+  }
+
+  &__value {
+    background-color: transparent;
+    color: var(--color-text-primary);
+  }
+}
+
+// =============================================================================
+// 规范第 14 章：明细表
+// =============================================================================
+// - 首列选择框列 60px；其余列宽自适应且至少 120px
+// - 头行 #EBEEF5 背景色，字段居中
+// - 最大显示宽度为页面宽度 90%，超出时横向滚动
+//   - 当明细表高于可视区域时，底部滚动条需固定在可见明细表底部
+.u-detail-table {
+  width: 90%;
+  max-width: 90%;
+  margin-inline: auto;
+
+  .el-table {
+    width: 100%;
+
+    th.el-table__cell {
+      min-width: 120px;
+      background-color: var(--color-border-lighter);
+      text-align: center;
+    }
+
+    .el-table__body .el-table__cell {
+      min-width: 120px;
+    }
+
+    // 首列选择框列固定 60px（编辑页）
+    .el-table-column--selection .cell,
+    .el-checkbox {
+      width: 60px;
+    }
+  }
+}
+
+// 明细表底部同宽独立操作表（规范第 14 章）
+// 居中显示新增行按钮
+.u-detail-table-actions {
+  width: 90%;
+  max-width: 90%;
+  margin-inline: auto;
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-sm) 0;
+}

@@ -13,7 +13,7 @@
             <el-avatar :size="28" class="admin-layout__header-avatar">
               <el-icon><User /></el-icon>
             </el-avatar>
-            <span>管理员</span>
+            <span>{{ userStore.nickname }}</span>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
@@ -23,6 +23,9 @@
           </template>
         </el-dropdown>
       </div>
+
+      <!-- 修改密码弹窗（docs/admin/用户和权限管理.md 业务逻辑第 5 条） -->
+      <ChangePasswordDialog v-model:visible="passwordDialogVisible" />
     </header>
 
     <div class="admin-layout__body">
@@ -40,6 +43,34 @@
             <el-icon><HomeFilled /></el-icon>
             <template #title>首页</template>
           </el-menu-item>
+
+          <!-- 用户与权限（docs/admin/用户和权限管理.md 菜单栏） -->
+          <el-sub-menu index="admin-org">
+            <template #title>
+              <el-icon><UserFilled /></el-icon>
+              <span>用户与权限</span>
+            </template>
+            <el-menu-item index="/admin/org/user" @click="onMenuClick('/admin/org/user', '用户')">
+              <el-icon><User /></el-icon>
+              <template #title>用户</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/org/role" @click="onMenuClick('/admin/org/role', '角色')">
+              <el-icon><Avatar /></el-icon>
+              <template #title>角色</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/org/permission" @click="onMenuClick('/admin/org/permission', '权限')">
+              <el-icon><Key /></el-icon>
+              <template #title>权限</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/org/login-log" @click="onMenuClick('/admin/org/login-log', '登录记录')">
+              <el-icon><Document /></el-icon>
+              <template #title>登录记录</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/org/config" @click="onMenuClick('/admin/org/config', '系统配置')">
+              <el-icon><Setting /></el-icon>
+              <template #title>系统配置</template>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </aside>
 
@@ -120,18 +151,28 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeft,
   ArrowRight,
+  Avatar,
+  Document,
   HomeFilled,
+  Key,
   MoreFilled,
   Platform,
-  User
+  Setting,
+  User,
+  UserFilled
 } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 import { useAppStore } from '@/stores/app'
+import { useUserStore } from '@/stores/user'
+import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
+const userStore = useUserStore()
 
 const tabsScrollRef = ref(null)
+const passwordDialogVisible = ref(false)
 
 // 初始化首页标签
 appStore.initHomeTab()
@@ -205,14 +246,24 @@ function scrollTabs(delta) {
   el.scrollLeft += delta
 }
 
-// 修改密码：用户与权限模块就绪后接入弹窗与接口
+// 修改密码：弹出修改密码弹窗（docs/admin/用户和权限管理.md 业务逻辑第 5 条）
 function onChangePassword() {
-  // TODO: 修改密码弹窗（用户与权限管理模块）
+  passwordDialogVisible.value = true
 }
 
-// 登出：用户与权限模块就绪后接入登出接口与登录页跳转
+// 登出：清空登录状态并返回首页（登录页就绪后改为跳转登录页）
 function onLogout() {
-  // TODO: 登出接口调用与登录页跳转（用户与权限管理模块）
+  ElMessageBox.confirm('确定要登出吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      userStore.logout()
+      appStore.closeAll()
+      router.push('/home')
+    })
+    .catch(() => {})
 }
 
 // 确保激活标签滚动到可见区域

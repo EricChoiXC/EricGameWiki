@@ -88,9 +88,26 @@ export const sysOrgApi = createStandardApi('/org/user')
 export const sysAttachmentApi = createStandardApi('/sys/attachment')
 export const sysAuditApi = createStandardApi('/sys/audit')
 
+/**
+ * 公共 ID 预生成接口
+ * 模块映射：docs/admin/公共服务.md
+ * 用于新建场景下需在落库前先取得主键（如先上传附件再保存主单据）的场景，
+ * 返回的 id 与各模块 Service 落库时调用的 IDUtil.initID(id) 配合：前端回传相同 id 时后端原样保留。
+ */
+export const idApi = {
+  /**
+   * 预生成业务主键
+   * @returns 响应 data 为 32 位业务主键字符串
+   */
+  init() {
+    return request.get('/sys/id/init')
+  }
+}
+
 export default {
   sysOrgApi,
   sysAttachmentApi,
   sysAuditApi,
+  idApi,
   createStandardApi
 }

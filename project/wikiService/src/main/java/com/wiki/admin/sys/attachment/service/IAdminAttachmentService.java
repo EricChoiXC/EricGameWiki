@@ -49,6 +49,14 @@ public interface IAdminAttachmentService {
     com.wiki.admin.sys.attachment.model.dto.AdminAttachmentFileDo loadForDownload(String fieldId);
 
     /**
+     * 加载附件信息（用于删除鉴权等需要 uploaderId 的场景）。
+     *
+     * @param fieldId 附件信息id
+     * @return 附件信息（admin_attachment_main），不存在抛 NOT_FOUND
+     */
+    AdminAttachmentMainDo loadMain(String fieldId);
+
+    /**
      * 逻辑删除附件（设置 field_delete_flag = 1）。
      *
      * @param fieldId 附件信息id

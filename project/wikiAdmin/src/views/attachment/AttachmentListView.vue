@@ -93,7 +93,7 @@
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="onDownload(row)">下载</el-button>
             <el-button
-              v-if="hasAttachmentPermission"
+              v-if="canDelete(row)"
               link
               type="danger"
               size="small"
@@ -152,6 +152,18 @@ import { PERMISSION_CODE } from '@/utils/constants'
 const userStore = useUserStore()
 
 const hasAttachmentPermission = userStore.hasPermission(PERMISSION_CODE.ATTACHMENT_ADMIN)
+
+/**
+ * 删除按钮显隐预判断（不可替代后端最终鉴权）：
+ * 按接口鉴权约定，仅上传者本人或附件管理员可删除，故两者满足其一即展示按钮。
+ * @param {Object} row 附件行数据
+ * @returns {boolean}
+ */
+function canDelete(row) {
+  if (hasAttachmentPermission) return true
+  const currentUserId = userStore.userInfo?.fieldId
+  return !!currentUserId && !!row?.fieldUploaderId && currentUserId === row.fieldUploaderId
+}
 
 // 筛选条件
 const filter = reactive({

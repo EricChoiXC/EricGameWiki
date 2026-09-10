@@ -50,9 +50,12 @@ public class AdminAttachmentController {
 
     /**
      * 附件列表分页查询。
+     * <p>
+     * 鉴权：要求 admin-attachment::ADMIN 权限（附件管理员可查看附件列表）。
      */
     @PostMapping("/list")
     public ApiResponse<AdminAttachmentListVo> list(@RequestBody ApiRequest<AdminAttachmentMainDo> request) {
+        attachmentResolver.requireAdmin();
         ListResult<AdminAttachmentListVo> result = attachmentService.list(request);
         return ApiResponse.success(result.getRecords(), result.getQuery());
     }
@@ -61,13 +64,14 @@ public class AdminAttachmentController {
      * 上传附件。
      * <p>
      * 对应前端附件组件：fieldModelName 必填，fieldModelId / fieldKey 可选。
+     * 鉴权：仅要求登录态，不做权限过滤（对应 docs/admin/附件机制.md 接口鉴权约定）。
      */
     @PostMapping("/upload")
     public ApiResponse<String> upload(@RequestParam("file") MultipartFile file,
                                       @RequestParam(value = "fieldModelName", required = false) String fieldModelName,
                                       @RequestParam(value = "fieldModelId", required = false) String fieldModelId,
                                       @RequestParam(value = "fieldKey", required = false) String fieldKey) {
-        attachmentResolver.requireManage(null);
+        attachmentResolver.requireLogin(null);
         String uploaderId = currentUserId();
         String mainId = attachmentService.upload(file, fieldModelName, fieldModelId, fieldKey, uploaderId);
         return ApiResponse.success(mainId);
@@ -75,10 +79,12 @@ public class AdminAttachmentController {
 
     /**
      * 下载附件。
+     * <p>
+     * 鉴权：仅要求登录态，不做权限过滤。
      */
     @GetMapping("/download")
     public ResponseEntity<Resource> download(@RequestParam("fieldId") String fieldId) {
-        // 下载为读操作，鉴权要求登录态（已由 Security 全局认证保障），不强制附件管理员权限
+        attachmentResolver.requireLogin(fieldId);
         AdminAttachmentFileDo fileDo = attachmentService.loadForDownload(fieldId);
         Path target = Paths.get(fileDo.getFieldFilePath());
         // 若相对路径不含盘符，尝试从当前工作目录解析；实际物理文件由存储目录决定
@@ -98,10 +104,13 @@ public class AdminAttachmentController {
 
     /**
      * 逻辑删除附件。
+     * <p>
+     * 鉴权：限制为上传者本人或具备 admin-attachment::ADMIN 的用户（对应 docs/admin/附件机制.md 接口鉴权约定）。
      */
     @DeleteMapping("/delete")
     public ApiResponse<Void> delete(@RequestParam("fieldId") String fieldId) {
-        attachmentResolver.requireManage(fieldId);
+        AdminAttachmentMainDo main = attachmentService.loadMain(fieldId);
+        attachmentResolver.requireDelete(fieldId, main.getFieldUploaderId());
         attachmentService.delete(fieldId);
         return ApiResponse.success();
     }

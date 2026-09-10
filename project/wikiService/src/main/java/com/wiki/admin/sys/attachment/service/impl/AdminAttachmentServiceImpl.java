@@ -153,6 +153,15 @@ public class AdminAttachmentServiceImpl implements IAdminAttachmentService {
     }
 
     @Override
+    public AdminAttachmentMainDo loadMain(String fieldId) {
+        AdminAttachmentMainDo main = mainDao.selectById(fieldId);
+        if (main == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "附件不存在");
+        }
+        return main;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(String fieldId) {
         AdminAttachmentMainDo main = mainDao.selectById(fieldId);

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.wiki.model.mapper.WikiMainMapper">
+
+    <resultMap id="mainMap" type="com.wiki.admin.wiki.model.dto.WikiMainDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_en_name" property="fieldEnName"/>
+        <result column="field_jp_name" property="fieldJpName"/>
+        <result column="field_simple_name" property="fieldSimpleName"/>
+        <result column="field_publish_date" property="fieldPublishDate"/>
+        <result column="field_create_time" property="fieldCreateTime"/>
+        <result column="field_status" property="fieldStatus"/>
+        <result column="field_extend" property="fieldExtend"/>
+        <result column="field_managers" property="fieldManagers"/>
+    </resultMap>
+
+    <sql id="cols">field_id, field_name, field_en_name, field_jp_name, field_simple_name,
+        field_publish_date, field_create_time, field_status, field_extend, field_managers</sql>
+
+    <select id="selectById" resultMap="mainMap">
+        SELECT <include refid="cols"/> FROM wiki_main WHERE field_id = #{fieldId}
+    </select>
+
+    <select id="selectBySimpleName" resultMap="mainMap">
+        SELECT <include refid="cols"/> FROM wiki_main WHERE field_simple_name = #{fieldSimpleName}
+    </select>
+
+    <select id="selectByCondition" resultMap="mainMap">
+        SELECT <include refid="cols"/> FROM wiki_main
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+        <if test="orderBySql != null and orderBySql != ''"> ${orderBySql} </if>
+        <if test="needPage"> LIMIT #{pageSize} OFFSET #{offset} </if>
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(1) FROM wiki_main
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO wiki_main
+        (field_id, field_name, field_en_name, field_jp_name, field_simple_name,
+         field_publish_date, field_create_time, field_status, field_extend, field_managers)
+        VALUES
+        (#{fieldId}, #{fieldName}, #{fieldEnName}, #{fieldJpName}, #{fieldSimpleName},
+         #{fieldPublishDate}, #{fieldCreateTime}, #{fieldStatus}, #{fieldExtend}, #{fieldManagers})
+    </insert>
+
+    <update id="update">
+        UPDATE wiki_main
+        <set>
+            <if test="fieldName != null">field_name = #{fieldName},</if>
+            <if test="fieldEnName != null">field_en_name = #{fieldEnName},</if>
+            <if test="fieldJpName != null">field_jp_name = #{fieldJpName},</if>
+            <if test="fieldSimpleName != null">field_simple_name = #{fieldSimpleName},</if>
+            <if test="fieldPublishDate != null">field_publish_date = #{fieldPublishDate},</if>
+            <if test="fieldStatus != null">field_status = #{fieldStatus},</if>
+            <if test="fieldExtend != null">field_extend = #{fieldExtend},</if>
+            <if test="fieldManagers != null">field_managers = #{fieldManagers},</if>
+        </set>
+        WHERE field_id = #{fieldId}
+    </update>
+
+</mapper>

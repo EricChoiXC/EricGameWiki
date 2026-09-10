@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.wiki.model.mapper.WikiMainDataMapper">
+
+    <resultMap id="dataMap" type="com.wiki.admin.wiki.model.dto.WikiMainDataDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_main_id" property="fieldMainId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_data_name" property="fieldDataName"/>
+        <result column="field_data_type" property="fieldDataType"/>
+        <result column="field_data_json" property="fieldDataJson"/>
+    </resultMap>
+
+    <sql id="cols">field_id, field_main_id, field_name, field_data_name, field_data_type, field_data_json</sql>
+
+    <select id="selectById" resultMap="dataMap">
+        SELECT <include refid="cols"/> FROM wiki_main_data WHERE field_id = #{fieldId}
+    </select>
+
+    <select id="selectByMainId" resultMap="dataMap">
+        SELECT <include refid="cols"/> FROM wiki_main_data WHERE field_main_id = #{fieldMainId}
+    </select>
+
+    <select id="selectByMainIdAndDataName" resultMap="dataMap">
+        SELECT <include refid="cols"/>
+        FROM wiki_main_data
+        WHERE field_main_id = #{fieldMainId} AND field_data_name = #{fieldDataName}
+    </select>
+
+    <select id="selectByCondition" resultMap="dataMap">
+        SELECT <include refid="cols"/> FROM wiki_main_data
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+        <if test="orderBySql != null and orderBySql != ''"> ${orderBySql} </if>
+        <if test="needPage"> LIMIT #{pageSize} OFFSET #{offset} </if>
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(1) FROM wiki_main_data
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO wiki_main_data
+        (field_id, field_main_id, field_name, field_data_name, field_data_type, field_data_json)
+        VALUES
+        (#{fieldId}, #{fieldMainId}, #{fieldName}, #{fieldDataName}, #{fieldDataType}, #{fieldDataJson})
+    </insert>
+
+    <update id="update">
+        UPDATE wiki_main_data
+        <set>
+            <if test="fieldMainId != null">field_main_id = #{fieldMainId},</if>
+            <if test="fieldName != null">field_name = #{fieldName},</if>
+            <if test="fieldDataName != null">field_data_name = #{fieldDataName},</if>
+            <if test="fieldDataType != null">field_data_type = #{fieldDataType},</if>
+            <if test="fieldDataJson != null">field_data_json = #{fieldDataJson},</if>
+        </set>
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM wiki_main_data WHERE field_id = #{fieldId}
+    </delete>
+
+</mapper>

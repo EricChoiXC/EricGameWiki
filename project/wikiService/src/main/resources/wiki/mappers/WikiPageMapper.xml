@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.wiki.model.mapper.WikiPageMapper">
+
+    <resultMap id="pageMap" type="com.wiki.admin.wiki.model.dto.WikiPageDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_main_id" property="fieldMainId"/>
+        <result column="field_data_id" property="fieldDataId"/>
+        <result column="field_wiki_page" property="fieldWikiPage"/>
+    </resultMap>
+
+    <sql id="cols">field_id, field_main_id, field_data_id, field_wiki_page</sql>
+
+    <select id="selectById" resultMap="pageMap">
+        SELECT <include refid="cols"/> FROM wiki_main_data_wiki_page WHERE field_id = #{fieldId}
+    </select>
+
+    <select id="selectByDataId" resultMap="pageMap">
+        SELECT <include refid="cols"/> FROM wiki_main_data_wiki_page WHERE field_data_id = #{fieldDataId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO wiki_main_data_wiki_page
+        (field_id, field_main_id, field_data_id, field_wiki_page)
+        VALUES
+        (#{fieldId}, #{fieldMainId}, #{fieldDataId}, #{fieldWikiPage})
+    </insert>
+
+    <update id="update">
+        UPDATE wiki_main_data_wiki_page
+        <set>
+            <if test="fieldMainId != null">field_main_id = #{fieldMainId},</if>
+            <if test="fieldDataId != null">field_data_id = #{fieldDataId},</if>
+            <if test="fieldWikiPage != null">field_wiki_page = #{fieldWikiPage},</if>
+        </set>
+        WHERE field_id = #{fieldId}
+    </update>
+
+</mapper>

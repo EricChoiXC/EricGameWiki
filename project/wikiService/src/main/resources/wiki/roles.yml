@@ -1,0 +1,4 @@
+ROLES:
+  - KEY: "admin-wiki::ADMIN"
+    NAME: "wiki 管理员"
+    DESC: "可管理所有 wiki 项目（项目、数据项、数据维护、wiki 页面）"

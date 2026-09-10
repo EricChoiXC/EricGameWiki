@@ -23,4 +23,15 @@ public interface IWikiCRPService {
      * @return true 用户有效；false 用户不存在或已停用
      */
     boolean checkUserValid(String userId);
+
+    /**
+     * 加载导入附件的物理文件路径，供后续导入处理读取文件流。
+     * <p>
+     * 通过调用 sys.attachment 模块 IAdminAttachmentService 读取附件文件元数据，
+     * 禁止 wiki 模块直接访问 admin_attachment 表。供 ImportExportProcessor 导入使用。
+     *
+     * @param attachmentId 附件信息id（admin_attachment_main.field_id）
+     * @return 附件物理文件路径
+     */
+    String loadAttachmentFilePath(String attachmentId);
 }

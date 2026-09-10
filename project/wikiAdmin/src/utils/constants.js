@@ -35,7 +35,8 @@ export const LOGIN_SUCCESS_OPTIONS = [
 export const PERMISSION_CODE = {
   USER: 'admin-org::USER',
   ROLE: 'admin-org::ROLE',
-  ATTACHMENT_ADMIN: 'admin-attachment::ADMIN'
+  ATTACHMENT_ADMIN: 'admin-attachment::ADMIN',
+  WIKI_ADMIN: 'admin-wiki::ADMIN'
 }
 
 // 系统配置项 key（与 docs/admin/用户和权限管理.md 系统配置表一致）

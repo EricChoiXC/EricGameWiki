@@ -109,6 +109,51 @@ const router = createRouter({
           name: 'AttachmentConfig',
           component: () => import('@/views/attachment/AttachmentConfigView.vue'),
           meta: { title: '系统配置', menuGroup: '附件', keepAlive: true }
+        },
+        // -----------------------------------------------------------------
+        // wiki 模块（docs/admin/wiki/wiki系统.md）
+        // -----------------------------------------------------------------
+        // 项目列表
+        {
+          path: 'admin/wiki',
+          name: 'WikiMainList',
+          component: () => import('@/views/wiki/WikiMainListView.vue'),
+          meta: { title: '项目列表', menuGroup: 'wiki', keepAlive: true }
+        },
+        // 项目新建
+        {
+          path: 'admin/wiki/create',
+          name: 'WikiMainCreate',
+          component: () => import('@/views/wiki/WikiMainEditView.vue'),
+          meta: { title: '新建项目' }
+        },
+        // 项目编辑
+        {
+          path: 'admin/wiki/edit/:id',
+          name: 'WikiMainEdit',
+          component: () => import('@/views/wiki/WikiMainEditView.vue'),
+          meta: { title: '编辑项目' }
+        },
+        // 数据项列表
+        {
+          path: 'admin/wiki/:mainId/data',
+          name: 'WikiMainDataList',
+          component: () => import('@/views/wiki/WikiMainDataListView.vue'),
+          meta: { title: '数据项列表', keepAlive: true }
+        },
+        // 数据项新建
+        {
+          path: 'admin/wiki/:mainId/data/create',
+          name: 'WikiMainDataCreate',
+          component: () => import('@/views/wiki/WikiMainDataEditView.vue'),
+          meta: { title: '新建数据项' }
+        },
+        // 数据项编辑
+        {
+          path: 'admin/wiki/:mainId/data/edit/:id',
+          name: 'WikiMainDataEdit',
+          component: () => import('@/views/wiki/WikiMainDataEditView.vue'),
+          meta: { title: '编辑数据项' }
         }
       ]
     },

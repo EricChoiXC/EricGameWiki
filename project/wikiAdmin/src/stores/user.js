@@ -21,7 +21,8 @@ export const useUserStore = defineStore('user', {
     permissions: [
       PERMISSION_CODE.USER,
       PERMISSION_CODE.ROLE,
-      PERMISSION_CODE.ATTACHMENT_ADMIN
+      PERMISSION_CODE.ATTACHMENT_ADMIN,
+      PERMISSION_CODE.WIKI_ADMIN
     ]
   }),
 
@@ -91,7 +92,8 @@ export const useUserStore = defineStore('user', {
       this.permissions = [
         PERMISSION_CODE.USER,
         PERMISSION_CODE.ROLE,
-        PERMISSION_CODE.ATTACHMENT_ADMIN
+        PERMISSION_CODE.ATTACHMENT_ADMIN,
+        PERMISSION_CODE.WIKI_ADMIN
       ]
       setToken('')
     }

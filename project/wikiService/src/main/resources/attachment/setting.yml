@@ -1,0 +1,11 @@
+SETTING:
+  - KEY: "admin-attachment::file_path"
+    NAME: "附件路径"
+    DESC: "附件保存的根目录路径"
+    DEFAULT: "/attachment"
+    TYPE: "string"
+  - KEY: "admin-attachment::file_size_limit"
+    NAME: "附件大小限制"
+    DESC: "附件大小限制，单位：byte；为 0 时表示不限制"
+    DEFAULT: "10485760"
+    TYPE: "integer"

@@ -71,6 +71,22 @@
               <template #title>系统配置</template>
             </el-menu-item>
           </el-sub-menu>
+
+          <!-- 附件（docs/admin/附件机制.md 菜单栏） -->
+          <el-sub-menu index="admin-attachment">
+            <template #title>
+              <el-icon><Paperclip /></el-icon>
+              <span>附件</span>
+            </template>
+            <el-menu-item index="/admin/attachment" @click="onMenuClick('/admin/attachment', '附件列表')">
+              <el-icon><Files /></el-icon>
+              <template #title>附件列表</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/attachment/config" @click="onMenuClick('/admin/attachment/config', '系统配置')">
+              <el-icon><Setting /></el-icon>
+              <template #title>系统配置</template>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </aside>
 
@@ -153,9 +169,11 @@ import {
   ArrowRight,
   Avatar,
   Document,
+  Files,
   HomeFilled,
   Key,
   MoreFilled,
+  Paperclip,
   Platform,
   Setting,
   User,

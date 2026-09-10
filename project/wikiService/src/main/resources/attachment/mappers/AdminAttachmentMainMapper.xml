@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.sys.attachment.model.mapper.AdminAttachmentMainMapper">
+
+    <resultMap id="mainMap" type="com.wiki.admin.sys.attachment.model.dto.AdminAttachmentMainDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_file_id" property="fieldFileId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_create_time" property="fieldCreateTime"/>
+        <result column="field_uploader_id" property="fieldUploaderId"/>
+        <result column="field_delete_flag" property="fieldDeleteFlag"/>
+        <result column="field_order" property="fieldOrder"/>
+        <result column="field_model_name" property="fieldModelName"/>
+        <result column="field_model_id" property="fieldModelId"/>
+        <result column="field_key" property="fieldKey"/>
+    </resultMap>
+
+    <!-- 列表查询联表结果（main + file + uploader name） -->
+    <resultMap id="listVoMap" type="com.wiki.admin.sys.attachment.model.dto.AdminAttachmentListVo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_file_id" property="fieldFileId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_create_time" property="fieldCreateTime"/>
+        <result column="field_uploader_id" property="fieldUploaderId"/>
+        <result column="uploader_name" property="fieldUploaderName"/>
+        <result column="field_delete_flag" property="fieldDeleteFlag"/>
+        <result column="field_order" property="fieldOrder"/>
+        <result column="field_model_name" property="fieldModelName"/>
+        <result column="field_model_id" property="fieldModelId"/>
+        <result column="field_key" property="fieldKey"/>
+        <result column="field_file_type" property="fieldFileType"/>
+        <result column="field_file_size" property="fieldFileSize"/>
+        <result column="field_file_path" property="fieldFilePath"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mainMap">
+        SELECT field_id, field_file_id, field_name, field_create_time, field_uploader_id,
+               field_delete_flag, field_order, field_model_name, field_model_id, field_key
+        FROM admin_attachment_main WHERE field_id = #{fieldId}
+    </select>
+
+    <select id="selectByCondition" resultMap="listVoMap">
+        SELECT m.field_id, m.field_file_id, m.field_name, m.field_create_time, m.field_uploader_id,
+               u.field_name AS uploader_name,
+               m.field_delete_flag, m.field_order, m.field_model_name, m.field_model_id, m.field_key,
+               f.field_file_type, f.field_file_size, f.field_file_path
+        FROM admin_attachment_main m
+        LEFT JOIN admin_attachment_file f ON m.field_file_id = f.field_id
+        LEFT JOIN admin_org_user u ON m.field_uploader_id = u.field_id
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+        <if test="orderBySql != null and orderBySql != ''"> ${orderBySql} </if>
+        <if test="needPage"> LIMIT #{pageSize} OFFSET #{offset} </if>
+    </select>
+
+    <select id="countByCondition" resultType="long">
+        SELECT COUNT(1)
+        FROM admin_attachment_main m
+        LEFT JOIN admin_attachment_file f ON m.field_file_id = f.field_id
+        <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
+    </select>
+
+    <insert id="insert">
+        INSERT INTO admin_attachment_main
+        (field_id, field_file_id, field_name, field_create_time, field_uploader_id,
+         field_delete_flag, field_order, field_model_name, field_model_id, field_key)
+        VALUES
+        (#{fieldId}, #{fieldFileId}, #{fieldName}, #{fieldCreateTime}, #{fieldUploaderId},
+         #{fieldDeleteFlag}, #{fieldOrder}, #{fieldModelName}, #{fieldModelId}, #{fieldKey})
+    </insert>
+
+    <update id="updateDeleteFlag">
+        UPDATE admin_attachment_main
+        SET field_delete_flag = #{fieldDeleteFlag}
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <update id="updateOrder">
+        UPDATE admin_attachment_main
+        SET field_order = #{fieldOrder}
+        WHERE field_id = #{fieldId}
+    </update>
+
+    <select id="selectByModel" resultMap="mainMap">
+        SELECT field_id, field_file_id, field_name, field_create_time, field_uploader_id,
+               field_delete_flag, field_order, field_model_name, field_model_id, field_key
+        FROM admin_attachment_main
+        WHERE field_delete_flag = 0
+        <if test="fieldModelName != null and fieldModelName != ''">
+            AND field_model_name = #{fieldModelName}
+        </if>
+        <if test="fieldModelId != null">
+            AND field_model_id = #{fieldModelId}
+        </if>
+        <if test="fieldKey != null and fieldKey != ''">
+            AND field_key = #{fieldKey}
+        </if>
+        ORDER BY field_order ASC
+    </select>
+
+</mapper>

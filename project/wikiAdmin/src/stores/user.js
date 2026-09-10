@@ -18,7 +18,11 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     token: getToken(),
     userInfo: null,
-    permissions: [PERMISSION_CODE.USER, PERMISSION_CODE.ROLE]
+    permissions: [
+      PERMISSION_CODE.USER,
+      PERMISSION_CODE.ROLE,
+      PERMISSION_CODE.ATTACHMENT_ADMIN
+    ]
   }),
 
   getters: {
@@ -84,7 +88,11 @@ export const useUserStore = defineStore('user', {
     logout() {
       this.token = ''
       this.userInfo = null
-      this.permissions = [PERMISSION_CODE.USER, PERMISSION_CODE.ROLE]
+      this.permissions = [
+        PERMISSION_CODE.USER,
+        PERMISSION_CODE.ROLE,
+        PERMISSION_CODE.ATTACHMENT_ADMIN
+      ]
       setToken('')
     }
   }

@@ -34,7 +34,8 @@ export const LOGIN_SUCCESS_OPTIONS = [
 // 权限码（与后端 RBAC 权限名一致）
 export const PERMISSION_CODE = {
   USER: 'admin-org::USER',
-  ROLE: 'admin-org::ROLE'
+  ROLE: 'admin-org::ROLE',
+  ATTACHMENT_ADMIN: 'admin-attachment::ADMIN'
 }
 
 // 系统配置项 key（与 docs/admin/用户和权限管理.md 系统配置表一致）
@@ -85,5 +86,34 @@ export const CONFIG_ITEMS = [
     description: '默认密码',
     type: 'text',
     defaultValue: '123456'
+  }
+]
+
+// ---------------------------------------------------------------------------
+// 附件模块常量（docs/admin/附件机制.md）
+// ---------------------------------------------------------------------------
+
+// 附件模块配置项 key（与 docs/admin/附件机制.md 系统配置页一致）
+export const ATTACHMENT_CONFIG_KEY = {
+  FILE_PATH: 'admin-attachment::file_path',
+  FILE_SIZE_LIMIT: 'admin-attachment::file_size_limit'
+}
+
+// 附件模块配置项元信息（驱动附件系统配置页面渲染）
+export const ATTACHMENT_CONFIG_ITEMS = [
+  {
+    key: ATTACHMENT_CONFIG_KEY.FILE_PATH,
+    label: '附件路径',
+    description: '附件保存的根目录路径',
+    type: 'text',
+    defaultValue: '/attachment'
+  },
+  {
+    key: ATTACHMENT_CONFIG_KEY.FILE_SIZE_LIMIT,
+    label: '附件大小限制',
+    description: '附件大小限制，单位：byte；为 0 时表示不限制',
+    type: 'number',
+    defaultValue: 10485760,
+    min: 0
   }
 ]

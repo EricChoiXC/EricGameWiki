@@ -35,3 +35,6 @@ wiki:
     secret: "EricGameWikiJwtSecret2026ForSigningTokenMustBeLongEnough"
     expire-minutes: 720
     issuer: "wikiService"
+  attachment:
+    storage-root: "./data/attachment"
+    auto-mkdir: true

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wiki.admin.sys.attachment.model.mapper.AdminAttachmentFileMapper">
+
+    <resultMap id="fileMap" type="com.wiki.admin.sys.attachment.model.dto.AdminAttachmentFileDo">
+        <id column="field_id" property="fieldId"/>
+        <result column="field_file_name" property="fieldFileName"/>
+        <result column="field_file_type" property="fieldFileType"/>
+        <result column="field_file_size" property="fieldFileSize"/>
+        <result column="field_file_path" property="fieldFilePath"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="fileMap">
+        SELECT field_id, field_file_name, field_file_type, field_file_size, field_file_path
+        FROM admin_attachment_file WHERE field_id = #{fieldId}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO admin_attachment_file
+        (field_id, field_file_name, field_file_type, field_file_size, field_file_path)
+        VALUES
+        (#{fieldId}, #{fieldFileName}, #{fieldFileType}, #{fieldFileSize}, #{fieldFilePath})
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM admin_attachment_file WHERE field_id = #{fieldId}
+    </delete>
+
+</mapper>

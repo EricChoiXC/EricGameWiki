@@ -1,0 +1,4 @@
+MODULE:
+  MODEL_NAME: "admin-attachment"
+  MODEL_DESC: "附件管理模块"
+  VERSION: "V1.0.20260908.0"

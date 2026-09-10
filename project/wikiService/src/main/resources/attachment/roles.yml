@@ -1,0 +1,4 @@
+ROLES:
+  - KEY: "admin-attachment::ADMIN"
+    NAME: "附件管理员"
+    DESC: "可以查看附件列表和维护公共配置"

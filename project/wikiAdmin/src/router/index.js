@@ -92,6 +92,23 @@ const router = createRouter({
           name: 'OrgSystemConfig',
           component: () => import('@/views/org/config/SystemConfigView.vue'),
           meta: { title: '系统配置', menuGroup: '用户与权限', keepAlive: true }
+        },
+        // -----------------------------------------------------------------
+        // 附件模块（docs/admin/附件机制.md）
+        // -----------------------------------------------------------------
+        // 附件列表
+        {
+          path: 'admin/attachment',
+          name: 'AttachmentList',
+          component: () => import('@/views/attachment/AttachmentListView.vue'),
+          meta: { title: '附件列表', menuGroup: '附件', keepAlive: true }
+        },
+        // 附件系统配置
+        {
+          path: 'admin/attachment/config',
+          name: 'AttachmentConfig',
+          component: () => import('@/views/attachment/AttachmentConfigView.vue'),
+          meta: { title: '系统配置', menuGroup: '附件', keepAlive: true }
         }
       ]
     },

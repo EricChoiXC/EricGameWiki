@@ -45,6 +45,11 @@ public class OrgUserLoginLogDaoImpl implements IOrgUserLoginLogDao {
     }
 
     @Override
+    public long countConsecutiveFails(String fieldUserId) {
+        return mapper.countConsecutiveFails(fieldUserId);
+    }
+
+    @Override
     public int insert(OrgUserLoginLogDo log) {
         return mapper.insert(log);
     }

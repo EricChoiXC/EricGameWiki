@@ -17,8 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -83,22 +83,22 @@ public class OrgAuthController {
 
     @PostMapping("/save")
     public ApiResponse<String> save(@RequestBody @Valid ApiRequest<OrgAuthSaveRequest> request) {
-        authResolver.requireManage();
+        authResolver.requireManage(request.getData().getFieldId());
         String id = authService.save(request.getData());
         return ApiResponse.success(id);
     }
 
-    @PostMapping("/update")
+    @PatchMapping("/update")
     public ApiResponse<Void> update(@RequestBody @Valid ApiRequest<OrgAuthSaveRequest> request) {
-        authResolver.requireManage();
+        authResolver.requireManage(request.getData().getFieldId());
         authService.update(request.getData());
         return ApiResponse.success();
     }
 
-    @PostMapping("/updateStatus")
+    @PatchMapping("/updateStatus")
     public ApiResponse<Void> updateStatus(@RequestParam("fieldId") String fieldId,
                                           @RequestBody ApiRequest<OrgAuthDo> request) {
-        authResolver.requireManage();
+        authResolver.requireManage(fieldId);
         OrgAuthDo exists = authService.load(fieldId);
         if (exists != null && SYS_ADMIN_CODE.equals(exists.getFieldCode())) {
             throw new BusinessException(ErrorCode.FORBIDDEN, "系统管理员角色不可修改状态");
@@ -108,29 +108,19 @@ public class OrgAuthController {
         return ApiResponse.success();
     }
 
-    @PostMapping("/updateAuthRoles")
+    @PatchMapping("/updateAuthRoles")
     public ApiResponse<Void> updateAuthRoles(@RequestParam("authId") String authId,
                                              @RequestBody List<String> roleIds) {
-        authResolver.requireManage();
+        authResolver.requireManage(authId);
         authService.updateAuthRoles(authId, roleIds);
         return ApiResponse.success();
     }
 
-    @PostMapping("/updateAuthUsers")
+    @PatchMapping("/updateAuthUsers")
     public ApiResponse<Void> updateAuthUsers(@RequestParam("authId") String authId,
                                               @RequestBody List<String> userIds) {
-        authResolver.requireManage();
+        authResolver.requireManage(authId);
         authService.updateAuthUsers(authId, userIds);
-        return ApiResponse.success();
-    }
-
-    @DeleteMapping("/delete")
-    public ApiResponse<Void> delete(@RequestParam("fieldId") String fieldId) {
-        authResolver.requireManage();
-        OrgAuthDo exists = authService.load(fieldId);
-        if (exists != null && SYS_ADMIN_CODE.equals(exists.getFieldCode())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "系统管理员角色不可删除");
-        }
         return ApiResponse.success();
     }
 

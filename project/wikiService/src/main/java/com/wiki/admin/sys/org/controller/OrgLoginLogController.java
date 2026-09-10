@@ -30,7 +30,7 @@ public class OrgLoginLogController {
 
     @PostMapping("/list")
     public ApiResponse<OrgUserLoginLogDo> list(@RequestBody ApiRequest<OrgUserLoginLogDo> request) {
-        loginLogResolver.requireView();
+        loginLogResolver.requireView(null);
         ListResult<OrgUserLoginLogDo> result = loginLogService.list(request);
         return ApiResponse.success(result.getRecords(), result.getQuery());
     }

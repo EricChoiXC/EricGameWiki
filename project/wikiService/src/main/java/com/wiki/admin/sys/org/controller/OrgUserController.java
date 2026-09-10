@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,7 +52,7 @@ public class OrgUserController {
 
     @PostMapping("/save")
     public ApiResponse<String> save(@RequestBody @Valid ApiRequest<OrgUserSaveRequest> request) {
-        userResolver.requireManage();
+        userResolver.requireManage(request.getData().getFieldId());
         OrgUserSaveRequest data = request.getData();
         OrgUserDo user = new OrgUserDo();
         user.setFieldId(IDUtil.initID(data.getFieldId()));
@@ -65,9 +66,9 @@ public class OrgUserController {
         return ApiResponse.success(id);
     }
 
-    @PostMapping("/update")
+    @PatchMapping("/update")
     public ApiResponse<Void> update(@RequestBody @Valid ApiRequest<OrgUserSaveRequest> request) {
-        userResolver.requireManage();
+        userResolver.requireManage(request.getData().getFieldId());
         OrgUserSaveRequest data = request.getData();
         OrgUserDo user = new OrgUserDo();
         user.setFieldId(data.getFieldId());
@@ -80,18 +81,18 @@ public class OrgUserController {
         return ApiResponse.success();
     }
 
-    @PostMapping("/updateStatus")
+    @PatchMapping("/updateStatus")
     public ApiResponse<Void> updateStatus(@RequestParam("fieldId") String fieldId,
                                           @RequestBody ApiRequest<OrgUserDo> request) {
-        userResolver.requireManage();
+        userResolver.requireManage(fieldId);
         OrgUserDo data = request.getData();
         userService.updateStatus(fieldId, data == null ? null : data.getFieldStatus());
         return ApiResponse.success();
     }
 
-    @PostMapping("/unlock")
+    @PatchMapping("/unlock")
     public ApiResponse<Void> unlock(@RequestParam("fieldId") String fieldId) {
-        userResolver.requireManage();
+        userResolver.requireManage(fieldId);
         userService.unlock(fieldId);
         return ApiResponse.success();
     }

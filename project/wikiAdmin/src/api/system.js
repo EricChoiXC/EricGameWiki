@@ -18,7 +18,7 @@ import request from './request'
 
 /**
  * 创建标准接口集合
- * @param {string} baseUrl 模块基础路径，如 '/sys/org/user'
+ * @param {string} baseUrl 模块基础路径，如 '/org/user'
  * @returns {Record<string, Function>} 标准接口集合
  */
 export function createStandardApi(baseUrl) {
@@ -84,7 +84,7 @@ export function createStandardApi(baseUrl) {
  * 模块映射：docs/AGENTS.md 第 9 章 公共系统（sys）
  *  - org 用户管理 / attachment 附件管理 / audit 审计
  */
-export const sysOrgApi = createStandardApi('/sys/org/user')
+export const sysOrgApi = createStandardApi('/org/user')
 export const sysAttachmentApi = createStandardApi('/sys/attachment')
 export const sysAuditApi = createStandardApi('/sys/audit')
 

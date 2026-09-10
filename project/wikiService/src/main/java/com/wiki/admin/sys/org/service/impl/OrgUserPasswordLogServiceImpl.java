@@ -41,4 +41,9 @@ public class OrgUserPasswordLogServiceImpl implements IOrgUserPasswordLogService
         int safeLimit = limit <= 0 ? DEFAULT_SCAN_LIMIT : limit;
         return passwordLogDao.selectByUserId(userId, safeLimit);
     }
+
+    @Override
+    public java.time.LocalDateTime loadLatestChangeTime(String userId) {
+        return passwordLogDao.selectLatestChangeTime(userId);
+    }
 }

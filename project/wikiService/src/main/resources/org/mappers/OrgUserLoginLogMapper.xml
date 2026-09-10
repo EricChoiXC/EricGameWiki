@@ -41,6 +41,17 @@
         <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
     </select>
 
+    <select id="countConsecutiveFails" resultType="long">
+        SELECT COUNT(1) FROM admin_org_user_login_log
+        WHERE field_user_id = #{fieldUserId}
+          AND field_login_success = 0
+          AND field_login_time &gt; COALESCE(
+              (SELECT MAX(field_login_time) FROM admin_org_user_login_log
+               WHERE field_user_id = #{fieldUserId} AND field_login_success = 1),
+              '1970-01-01 00:00:00'
+          )
+    </select>
+
     <insert id="insert">
         INSERT INTO admin_org_user_login_log
         (field_id, field_user_id, field_login_time, field_login_ip, field_login_success, field_message)

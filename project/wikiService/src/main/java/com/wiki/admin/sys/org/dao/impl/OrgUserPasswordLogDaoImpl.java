@@ -28,6 +28,11 @@ public class OrgUserPasswordLogDaoImpl implements IOrgUserPasswordLogDao {
     }
 
     @Override
+    public java.time.LocalDateTime selectLatestChangeTime(String fieldUserId) {
+        return mapper.selectLatestChangeTime(fieldUserId);
+    }
+
+    @Override
     public int insert(OrgUserPasswordLogDo log) {
         return mapper.insert(log);
     }

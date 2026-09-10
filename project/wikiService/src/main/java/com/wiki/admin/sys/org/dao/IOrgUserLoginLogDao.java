@@ -22,5 +22,8 @@ public interface IOrgUserLoginLogDao {
 
     long countByCondition(String whereSql, Map<String, Object> params);
 
+    /** 统计用户最近一次成功登录之后的连续失败次数 */
+    long countConsecutiveFails(String fieldUserId);
+
     int insert(OrgUserLoginLogDo log);
 }

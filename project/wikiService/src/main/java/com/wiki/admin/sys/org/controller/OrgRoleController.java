@@ -8,6 +8,7 @@ import com.wiki.common.model.response.ApiResponse;
 import com.wiki.common.model.response.ListResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,10 +43,10 @@ public class OrgRoleController {
         return ApiResponse.success(roleService.load(fieldId));
     }
 
-    @PostMapping("/updateStatus")
+    @PatchMapping("/updateStatus")
     public ApiResponse<Void> updateStatus(@RequestParam("fieldId") String fieldId,
                                           @RequestBody ApiRequest<OrgRoleDo> request) {
-        userResolver.requireManage();
+        userResolver.requireManage(fieldId);
         OrgRoleDo data = request.getData();
         roleService.updateStatus(fieldId, data == null ? null : data.getFieldStatus());
         return ApiResponse.success();

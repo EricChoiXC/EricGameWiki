@@ -5,6 +5,7 @@ import com.wiki.admin.sys.org.dao.IOrgAuthRoleDao;
 import com.wiki.admin.sys.org.dao.IOrgAuthUserDao;
 import com.wiki.admin.sys.org.dao.IOrgRoleDao;
 import com.wiki.admin.sys.org.dao.IOrgUserDao;
+import com.wiki.admin.sys.org.dao.IOrgUserLoginLogDao;
 import com.wiki.admin.sys.org.dao.IOrgUserPasswordLogDao;
 import com.wiki.admin.sys.org.model.dto.OrgAuthDo;
 import com.wiki.admin.sys.org.model.dto.OrgRoleDo;
@@ -70,6 +71,7 @@ public class OrgUserServiceImpl implements IOrgUserService {
     private final IOrgUserPasswordLogDao passwordLogDao;
     private final IOrgUserPasswordLogService passwordLogService;
     private final IOrgUserLoginLogService loginLogService;
+    private final IOrgUserLoginLogDao loginLogDao;
     private final IOrgRoleService roleService;
     private final IOrgAuthService authService;
     private final ICommonSettingService commonSettingService;
@@ -227,21 +229,9 @@ public class OrgUserServiceImpl implements IOrgUserService {
         userDao.unlockExpired(LocalDateTime.now());
     }
 
-    /** 统计用户最近连续失败次数（login_success=0，按时间倒序） */
+    /** 统计用户最近一次成功登录之后的连续失败次数（login_success=0） */
     private long countRecentFails(String userId) {
-        // 简化实现：当前 dao 未提供专门接口，临时使用 listByUser 接口取最多 100 条统计
-        var result = loginLogService.listByUser(userId, 1, 100);
-        if (result == null || result.getRecords() == null) {
-            return 0;
-        }
-        long fails = 0;
-        for (var log : result.getRecords()) {
-            if (log.getFieldLoginSuccess() != null && log.getFieldLoginSuccess() == 1) {
-                break;
-            }
-            fails++;
-        }
-        return fails;
+        return loginLogDao.countConsecutiveFails(userId);
     }
 
     @Override

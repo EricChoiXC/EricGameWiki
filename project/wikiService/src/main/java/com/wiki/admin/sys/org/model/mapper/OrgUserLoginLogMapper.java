@@ -31,5 +31,8 @@ public interface OrgUserLoginLogMapper {
 
     long countByCondition(@Param("whereSql") String whereSql, @Param("params") java.util.Map<String, Object> params);
 
+    /** 统计用户最近一次成功登录之后的连续失败次数（无成功记录则统计全部失败次数） */
+    long countConsecutiveFails(@Param("fieldUserId") String fieldUserId);
+
     int insert(OrgUserLoginLogDo log);
 }

@@ -5,8 +5,10 @@ import com.wiki.admin.sys.org.model.request.OrgLoginRequest;
 import com.wiki.admin.sys.org.model.response.OrgLoginResponse;
 import com.wiki.admin.sys.org.service.IOrgCRPService;
 import com.wiki.admin.sys.org.service.IOrgUserLoginLogService;
+import com.wiki.admin.sys.org.service.IOrgUserPasswordLogService;
 import com.wiki.admin.sys.org.service.IOrgUserService;
 import com.wiki.admin.sys.org.util.OrgConstants;
+import com.wiki.admin.sys.common.service.ICommonSettingService;
 import com.wiki.common.exception.BusinessException;
 import com.wiki.common.exception.ErrorCode;
 import com.wiki.common.security.JwtUtil;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +38,8 @@ public class OrgCRPServiceImpl implements IOrgCRPService {
 
     private final IOrgUserService userService;
     private final IOrgUserLoginLogService loginLogService;
+    private final IOrgUserPasswordLogService passwordLogService;
+    private final ICommonSettingService commonSettingService;
     private final JwtUtil jwtUtil;
 
     @Override
@@ -102,7 +107,36 @@ public class OrgCRPServiceImpl implements IOrgCRPService {
         resp.setUserId(user.getFieldId());
         resp.setUserName(user.getFieldName());
         resp.setLoginName(user.getFieldLoginName());
+        // 业务：密码有效期检查，过期则标记需强制修改密码
+        resp.setPasswordExpired(isPasswordExpired(user.getFieldId()));
         return resp;
+    }
+
+    /**
+     * 判断用户密码是否已过期。
+     * <p>
+     * 业务第 5 条配套：配置项 {@code admin-org::change-password-expire-days}，
+     * 为 0 时表示不过期；>0 时按最近一次密码变更时间计算是否超期。
+     * 无变更记录时（如初始密码）按创建时间或直接判定为过期，强制改密。
+     */
+    private boolean isPasswordExpired(String userId) {
+        String expireDaysStr = commonSettingService.getValueOrDefault(
+                OrgConstants.SETTING_CHANGE_PASSWORD_EXPIRE_DAYS, "0");
+        int expireDays;
+        try {
+            expireDays = Integer.parseInt(expireDaysStr);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        if (expireDays <= 0) {
+            return false;
+        }
+        LocalDateTime latestChange = passwordLogService.loadLatestChangeTime(userId);
+        if (latestChange == null) {
+            // 无密码变更记录，强制改密
+            return true;
+        }
+        return latestChange.plusDays(expireDays).isBefore(LocalDateTime.now());
     }
 
     @Override

@@ -14,5 +14,8 @@ public interface IOrgUserPasswordLogDao {
 
     List<OrgUserPasswordLogDo> selectByUserId(String fieldUserId, int limit);
 
+    /** 查询用户最近一次密码变更时间（用于密码过期校验） */
+    java.time.LocalDateTime selectLatestChangeTime(String fieldUserId);
+
     int insert(OrgUserPasswordLogDo log);
 }

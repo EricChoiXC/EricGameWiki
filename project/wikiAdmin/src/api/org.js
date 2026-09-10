@@ -12,6 +12,7 @@ import { createStandardApi } from './system'
  *  - admin_org_user_login_log   → 用户登录记录
  *  - admin_org_user_password_log→ 用户密码变更记录
  *
+ * 路径前缀对齐 AGENTS.md §4.2/§5：baseURL=/api/v1/admin，模块路径 /org/...
  * 通用接口规范遵循 docs/common/接口公共规范.md 第 3.4 章
  */
 
@@ -19,15 +20,15 @@ import { createStandardApi } from './system'
 // 用户管理（admin_org_user）
 // ---------------------------------------------------------------------------
 export const userApi = {
-  ...createStandardApi('/sys/org/user'),
+  ...createStandardApi('/org/user'),
 
   /**
-   * 启用/停用用户（PATCH /update 仅更新状态字段）
+   * 启用/停用用户（PATCH /updateStatus 仅更新状态字段）
    * @param {string} fieldId
    * @param {string} fieldStatus ENABLED | DISABLED
    */
   updateStatus(fieldId, fieldStatus) {
-    return request.patch('/sys/org/user/update', {
+    return request.patch('/org/user/updateStatus', {
       data: { fieldId, fieldStatus }
     })
   },
@@ -37,7 +38,7 @@ export const userApi = {
    * @param {string} fieldId
    */
   unlock(fieldId) {
-    return request.post('/sys/org/user/unlock', null, {
+    return request.patch('/org/user/unlock', null, {
       params: { fieldId }
     })
   },
@@ -47,7 +48,7 @@ export const userApi = {
    * @param {Object} payload { oldPassword, newPassword }
    */
   changePassword(payload) {
-    return request.post('/sys/org/user/changePassword', { data: payload })
+    return request.post('/org/user/changePassword', { data: payload })
   },
 
   /**
@@ -57,7 +58,7 @@ export const userApi = {
    */
   listLoginLog(fieldUserId, pageQuery = {}) {
     const { pageNum = 1, pageSize = 15, sortField = 'fieldLoginTime', sortOrder = 'desc' } = pageQuery
-    return request.post('/sys/org/userLoginLog/list', {
+    return request.post('/org/loginLog/list', {
       query: {
         pageNum,
         pageSize,
@@ -74,7 +75,15 @@ export const userApi = {
 // 角色管理（admin_org_auth 表 — 角色）
 // ---------------------------------------------------------------------------
 export const roleApi = {
-  ...createStandardApi('/sys/org/auth'),
+  ...createStandardApi('/org/auth'),
+
+  /**
+   * 角色不支持删除（后端已移除 DELETE /org/auth/delete 接口）
+   * 覆盖 createStandardApi 生成的 remove，防止误调用
+   */
+  remove() {
+    return Promise.reject(new Error('角色不支持删除'))
+  },
 
   /**
    * 启用/停用角色
@@ -82,7 +91,7 @@ export const roleApi = {
    * @param {string} fieldStatus ENABLED | DISABLED
    */
   updateStatus(fieldId, fieldStatus) {
-    return request.patch('/sys/org/auth/update', {
+    return request.patch('/org/auth/updateStatus', {
       data: { fieldId, fieldStatus }
     })
   },
@@ -92,7 +101,7 @@ export const roleApi = {
    * @param {Object} payload { data: roleVo, map: { authRoleList, authUserList } }
    */
   saveWithAssign(payload) {
-    return request.post('/sys/org/auth/save', payload)
+    return request.post('/org/auth/save', payload)
   },
 
   /**
@@ -100,36 +109,66 @@ export const roleApi = {
    * @param {Object} payload { data: roleVo, map: { authRoleList, authUserList } }
    */
   updateWithAssign(payload) {
-    return request.patch('/sys/org/auth/update', payload)
+    return request.patch('/org/auth/update', payload)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 认证（登录 / 登出 / 权限预判）
+// ---------------------------------------------------------------------------
+export const authApi = {
+  /**
+   * 登录
+   * @param {Object} payload { data: { loginName, password } }
+   * @returns 响应含 token、userId、userName、loginName、passwordExpired（过期需强制改密）
+   */
+  login(payload) {
+    return request.post('/org/auth/login', payload)
+  },
+
+  /**
+   * 登出
+   */
+  logout() {
+    return request.post('/org/auth/logout')
+  },
+
+  /**
+   * 批量预判当前用户是否具备指定权限码（仅用于按钮显隐预判，不可替代后端最终鉴权）
+   * @param {string[]} permissionCodes
+   */
+  batchCheckPermissions(permissionCodes) {
+    return request.post('/org/auth/batchCheckPermissions', permissionCodes || [])
   }
 }
 
 // ---------------------------------------------------------------------------
 // 权限管理（admin_org_role 表 — 权限）
 // ---------------------------------------------------------------------------
-export const permissionApi = createStandardApi('/sys/org/role')
+export const permissionApi = createStandardApi('/org/role')
 
 // ---------------------------------------------------------------------------
 // 登录记录（admin_org_user_login_log）
 // ---------------------------------------------------------------------------
-export const loginLogApi = createStandardApi('/sys/org/userLoginLog')
+export const loginLogApi = createStandardApi('/org/loginLog')
 
 // ---------------------------------------------------------------------------
 // 系统配置（admin-org 模块配置项）
 // ---------------------------------------------------------------------------
 export const configApi = {
-  ...createStandardApi('/sys/org/config'),
+  ...createStandardApi('/org/config'),
 
   /**
    * 批量保存配置项
    * @param {Array<{ fieldKey: string, fieldValue: string }>} list
    */
   saveBatch(list) {
-    return request.post('/sys/org/config/save', { list })
+    return request.post('/org/config/save', { list })
   }
 }
 
 export default {
+  authApi,
   userApi,
   roleApi,
   permissionApi,

@@ -95,7 +95,7 @@ erDiagram
 
 当类型选择 图鉴类 或 关联项 时，在下方显示 数据项 明细表：
 
-数据项明细表：名称-name、简称-data_name、数据类型-type、枚举项-enums、关联项-join；
+数据项明细表：名称-name、简称-data_name（限英文/数字/字符）、数据类型-type、枚举项-enums、关联项-join；
 
 数据类型可选类型包括：文本-text、富文本-blob、数字-number（涵盖浮点和整数）、日期-date、日期时间-datetime、时间-time、布尔-boolean、枚举-enum、附件-attachment、关联数据-join；
 
@@ -105,7 +105,7 @@ erDiagram
 
 图鉴类 的数据项明细表，固定以下两列数据项，不可被修改：
 
-> 名称-name-text; 编号-code_text
+> 名称-name-text; 编号-code-text
 
 #### 项目数据项创建后
 

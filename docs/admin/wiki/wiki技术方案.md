@@ -211,7 +211,9 @@ CREATE TABLE IF NOT EXISTS `wiki_re9_walkthrough` (
 ### 3.7 DDL 执行策略
 
 - DDL 由 `WikiMainDataServiceImpl` 在 `save` / `update` / `delete` 事务中调用 `WikiDynamicDataDao` 执行
-- DDL 不走 MyBatis Mapper XML（动态表无固定 Mapper），通过 `SqlSession` 直接执行原生 SQL
+- DDL 不走 MyBatis Mapper XML（动态表无固定 Mapper），通过 JDBC 直接执行原生 SQL
+- DDL 在独立 DataSource 连接上执行并关闭该连接，避免关闭 `SqlSession` 返回的事务绑定连接
+  导致 Spring 提交事务时报 `Connection is closed`；独立连接同时避免 DDL 隐式提交污染当前事务
 - 执行前校验表名合法性；执行失败回滚事务并抛业务异常
 - `ALTER TABLE` 仅支持 `ADD COLUMN`（首版约束，保护存量数据）
 

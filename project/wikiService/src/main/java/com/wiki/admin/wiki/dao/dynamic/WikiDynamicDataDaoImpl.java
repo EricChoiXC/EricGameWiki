@@ -15,13 +15,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.sql.DataSource;
 
 /**
  * wiki 动态表数据访问实现，对应 {@code docs/admin/wiki/wiki技术方案.md} 4.3（ARCH-W02）。
  * <p>
  * 动态表无固定 Mapper XML，通过原生 SQL 执行：
  * <ul>
- *   <li>DDL（CREATE/ALTER/DROP TABLE）：通过 JDBC Connection 直接执行（DDL 无需参数绑定）</li>
+ *   <li>DDL（CREATE/ALTER/DROP TABLE）：在独立 JDBC 连接上直接执行
+ *       （DDL 无需参数绑定；独立连接避免关闭/污染 Spring 事务连接）</li>
  *   <li>表存在性校验：查询 {@code information_schema.tables}，命名参数绑定</li>
  *   <li>CRUD：通过 MyBatis {@code SqlSession} 执行原生 SQL，
  *       所有值通过 {@code #{paramN}} 命名参数绑定，杜绝 SQL 注入</li>
@@ -47,8 +49,11 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
 
     @Override
     public void executeDdl(String sql) {
-        // DDL 无需参数绑定，通过 JDBC Connection 直接执行，避免动态注册 statement 的开销
-        try (Connection connection = sqlSession.getConnection();
+        // DDL 在独立 JDBC 连接上执行：sqlSession.getConnection() 返回事务绑定连接，
+        // 关闭它会破坏 Spring 事务（提交时报 Connection is closed）；
+        // 独立连接执行 DDL 同时避免 DDL 隐式提交污染当前事务
+        DataSource dataSource = sqlSession.getConfiguration().getEnvironment().getDataSource();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.execute();
         } catch (Exception e) {

@@ -126,7 +126,7 @@
             </el-table-column>
           </el-table>
           <el-button
-            v-if="form.fieldDataType === 'join'"
+            v-if="form.fieldDataType === 'data' || form.fieldDataType === 'join'"
             class="wiki-data-edit__add-detail"
             :icon="Plus"
             @click="addDetail"

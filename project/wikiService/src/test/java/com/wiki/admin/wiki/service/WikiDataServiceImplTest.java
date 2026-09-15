@@ -3,11 +3,13 @@ package com.wiki.admin.wiki.service;
 import com.wiki.admin.wiki.dao.IWikiMainDataDao;
 import com.wiki.admin.wiki.dao.IWikiMainDao;
 import com.wiki.admin.wiki.dao.dynamic.WikiDynamicDataDao;
+import com.wiki.admin.wiki.model.dto.ImportResult;
 import com.wiki.admin.wiki.model.dto.WikiMainDataDo;
 import com.wiki.admin.wiki.model.dto.WikiMainDo;
 import com.wiki.admin.wiki.model.request.WikiDataRequest;
 import com.wiki.admin.wiki.model.response.WikiDataVo;
 import com.wiki.admin.wiki.service.impl.WikiDataServiceImpl;
+import com.wiki.admin.wiki.util.ImportExportProcessor;
 import com.wiki.admin.wiki.util.WikiConstants;
 import com.wiki.common.exception.BusinessException;
 import com.wiki.common.exception.ErrorCode;
@@ -26,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -51,6 +54,8 @@ class WikiDataServiceImplTest {
     private IWikiMainDataDao wikiMainDataDao;
     private IWikiMainDao wikiMainDao;
     private WikiDynamicDataDao wikiDynamicDataDao;
+    private ImportExportProcessor importExportProcessor;
+    private IWikiCRPService wikiCRPService;
     private WikiDataServiceImpl service;
 
     @BeforeEach
@@ -58,7 +63,10 @@ class WikiDataServiceImplTest {
         wikiMainDataDao = mock(IWikiMainDataDao.class);
         wikiMainDao = mock(IWikiMainDao.class);
         wikiDynamicDataDao = mock(WikiDynamicDataDao.class);
-        service = new WikiDataServiceImpl(wikiMainDataDao, wikiMainDao, wikiDynamicDataDao);
+        importExportProcessor = mock(ImportExportProcessor.class);
+        wikiCRPService = mock(IWikiCRPService.class);
+        service = new WikiDataServiceImpl(wikiMainDataDao, wikiMainDao, wikiDynamicDataDao,
+                importExportProcessor, wikiCRPService);
     }
 
     // ===== 测试数据构建 =====
@@ -417,5 +425,66 @@ class WikiDataServiceImplTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.list(apiRequestForList("dataId")));
         assertEquals(ErrorCode.NOT_FOUND, ex.getErrorCode());
+    }
+
+    // ===== 导入导出（TASK-W3-03，委托 ImportExportProcessor） =====
+
+    @Test
+    void templateDelegatesToProcessor() {
+        WikiMainDataDo meta = dataItem("joinId", "enemy_drop", WikiConstants.DATA_TYPE_JOIN, "[]");
+        when(wikiMainDataDao.selectById("joinId")).thenReturn(meta);
+        when(wikiMainDao.selectById("mainId")).thenReturn(main());
+        when(importExportProcessor.buildTemplate(meta)).thenReturn(new byte[]{1, 2, 3});
+
+        byte[] bytes = service.template("joinId");
+
+        assertArrayEquals(new byte[]{1, 2, 3}, bytes);
+        verify(importExportProcessor).buildTemplate(meta);
+    }
+
+    @Test
+    void importDataLoadsAttachmentPathAndDelegatesWithSkipFlags() {
+        WikiMainDataDo meta = dataItem("joinId", "enemy_drop", WikiConstants.DATA_TYPE_JOIN, "[]");
+        when(wikiMainDataDao.selectById("joinId")).thenReturn(meta);
+        when(wikiMainDao.selectById("mainId")).thenReturn(main());
+        when(wikiCRPService.loadAttachmentFilePath("att1")).thenReturn("import/x.xlsx");
+        ImportResult expected = new ImportResult();
+        expected.countTotal();
+        expected.countSuccess(1);
+        when(importExportProcessor.importRows(eq(main()), eq(meta), eq("import/x.xlsx"),
+                eq(true), eq(true))).thenReturn(expected);
+
+        WikiDataRequest request = new WikiDataRequest();
+        request.setFieldDataId("joinId");
+        request.setFieldAttachmentId("att1");
+        request.setSkipFail(true);
+        request.setSkipError(true);
+
+        ImportResult result = service.importData(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalCount());
+        assertEquals(1, result.getSuccessCount());
+        verify(wikiCRPService).loadAttachmentFilePath("att1");
+        verify(importExportProcessor).importRows(main(), meta, "import/x.xlsx", true, true);
+    }
+
+    @Test
+    void importDataRejectsNullRequest() {
+        BusinessException ex = assertThrows(BusinessException.class, () -> service.importData(null));
+        assertEquals(ErrorCode.BAD_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    void exportDelegatesToProcessor() {
+        WikiMainDataDo meta = dataItem("joinId", "enemy_drop", WikiConstants.DATA_TYPE_JOIN, "[]");
+        when(wikiMainDataDao.selectById("joinId")).thenReturn(meta);
+        when(wikiMainDao.selectById("mainId")).thenReturn(main());
+        when(importExportProcessor.export(main(), meta)).thenReturn(new byte[]{4, 5});
+
+        byte[] bytes = service.export("joinId");
+
+        assertArrayEquals(new byte[]{4, 5}, bytes);
+        verify(importExportProcessor).export(main(), meta);
     }
 }

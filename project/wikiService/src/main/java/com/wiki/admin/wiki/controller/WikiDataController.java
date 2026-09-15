@@ -1,5 +1,6 @@
 package com.wiki.admin.wiki.controller;
 
+import com.wiki.admin.wiki.model.dto.ImportResult;
 import com.wiki.admin.wiki.model.dto.WikiMainDataVo;
 import com.wiki.admin.wiki.model.request.WikiDataRequest;
 import com.wiki.admin.wiki.model.response.WikiDataVo;
@@ -13,6 +14,11 @@ import com.wiki.common.model.response.ApiResponse;
 import com.wiki.common.model.response.ListResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,6 +27,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * wiki 数据明细维护 Controller，对应 {@code docs/admin/wiki/wikiAPI接口设计文档.md} 第 6 节。
@@ -107,6 +116,52 @@ public class WikiDataController {
         requireMaintain(request.getData());
         wikiDataService.batchDelete(request.getData().getFieldDataId(), request.getData().getFieldIds());
         return ApiResponse.success();
+    }
+
+    /**
+     * API-W207 导入模板下载（仅关联项支持）。
+     * <p>
+     * 返回 xlsx 文件流：首行标题行，关联数据显示 {@code ${关联数据}编号}，不列附件类明细。
+     */
+    @GetMapping("/template")
+    public ResponseEntity<Resource> template(@RequestParam("fieldDataId") String fieldDataId) {
+        requireMaintain(fieldDataId);
+        return buildFileResponse(wikiDataService.template(fieldDataId), "导入模板.xlsx");
+    }
+
+    /**
+     * API-W208 数据明细导入（仅关联项支持）。
+     * <p>
+     * 经 CRPService 读取上传的 xlsx 附件，委托 ImportExportProcessor 校验与分批导入；
+     * 返回成功数 / 跳过数 / 失败明细。
+     */
+    @PostMapping("/import")
+    public ApiResponse<ImportResult> importData(@RequestBody ApiRequest<WikiDataRequest> request) {
+        requireMaintain(request.getData());
+        return ApiResponse.success(wikiDataService.importData(request.getData()));
+    }
+
+    /**
+     * API-W209 数据明细导出（仅关联项支持）。
+     * <p>
+     * 返回 xlsx 文件流：导出该关联项数据项全部数据明细，首行标题行与导入模板一致，
+     * 关联数据列显示目标记录编号。
+     */
+    @PostMapping("/export")
+    public ResponseEntity<Resource> export(@RequestBody ApiRequest<WikiDataRequest> request) {
+        requireMaintain(request.getData());
+        return buildFileResponse(wikiDataService.export(request.getData().getFieldDataId()), "导出数据.xlsx");
+    }
+
+    /**
+     * 构造 xlsx 文件流下载响应（文件名 UTF-8 编码，遵循附件下载惯例）。
+     */
+    private ResponseEntity<Resource> buildFileResponse(byte[] content, String fileName) {
+        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedName)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(new ByteArrayResource(content));
     }
 
     /**

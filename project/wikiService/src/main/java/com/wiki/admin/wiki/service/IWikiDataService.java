@@ -1,5 +1,6 @@
 package com.wiki.admin.wiki.service;
 
+import com.wiki.admin.wiki.model.dto.ImportResult;
 import com.wiki.admin.wiki.model.request.WikiDataRequest;
 import com.wiki.admin.wiki.model.response.WikiDataVo;
 import com.wiki.common.model.request.ApiRequest;
@@ -67,4 +68,39 @@ public interface IWikiDataService {
      * 非关联项数据项调用抛 BAD_REQUEST。
      */
     void batchDelete(String fieldDataId, List<String> fieldIds);
+
+    /**
+     * API-W207 导入模板下载。
+     * <p>
+     * 仅关联项支持；生成首行标题行的 xlsx 模板，关联数据显示 {@code ${关联数据}编号}，
+     * 不列附件类明细。
+     *
+     * @param fieldDataId 数据项 id（需为关联项）
+     * @return xlsx 字节流
+     */
+    byte[] template(String fieldDataId);
+
+    /**
+     * API-W208 数据明细导入。
+     * <p>
+     * 经 {@code IWikiCRPService} 调用 sys.attachment 读取上传的 xlsx 附件路径，
+     * 委托 {@code ImportExportProcessor} 执行读取 → 数据合理性校验 → 分批导入（每批 200 条）。
+     * 导入主流程标注 {@code @Transactional}，未选失败跳过时批次 REQUIRED 加入主事务整体回滚。
+     * 返回成功数 / 跳过数 / 失败明细。
+     *
+     * @param request 导入请求（含 fieldDataId、fieldAttachmentId、skipFail、skipError）
+     * @return 导入结果
+     */
+    ImportResult importData(WikiDataRequest request);
+
+    /**
+     * API-W209 数据明细导出。
+     * <p>
+     * 仅关联项支持；导出该数据项全部数据明细为 xlsx，首行标题行与导入模板一致，
+     * 关联数据列显示目标记录编号。
+     *
+     * @param fieldDataId 数据项 id（需为关联项）
+     * @return xlsx 字节流
+     */
+    byte[] export(String fieldDataId);
 }

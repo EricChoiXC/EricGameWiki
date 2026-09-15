@@ -41,4 +41,13 @@ public class WikiDataRequest {
 
     /** 待批量删除的记录 id 列表（仅关联项 batch-delete 使用） */
     private List<String> fieldIds;
+
+    /** 导入附件 id（仅 API-W208 导入使用；附件组件上传 xlsx 后获得的附件信息 id） */
+    private String fieldAttachmentId;
+
+    /** 导入失败数据跳过开关（仅 API-W208 导入使用；true 移除失败批次继续，false 整体回滚） */
+    private Boolean skipFail;
+
+    /** 导入异常数据跳过开关（仅 API-W208 导入使用；true 移除异常数据继续，false 返回错误） */
+    private Boolean skipError;
 }

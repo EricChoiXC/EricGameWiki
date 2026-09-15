@@ -233,6 +233,7 @@ wiki 模块开发分为三期，每期可独立验收：
 
 ### TASK-W3-03 实现数据明细导入导出接口
 
+- **状态**: 已完成（2026-09-15）
 - **来源文档**: [wikiAPI接口设计文档.md](wikiAPI接口设计文档.md) 6（API-W207/W208/W209）
 - **前置依赖**: TASK-W3-02
 - **任务内容**: `WikiDataController` 新增 template（GET 模板下载）、import（POST 导入）、export（POST 导出）接口；鉴权经 `WikiResolver.requireMaintain`

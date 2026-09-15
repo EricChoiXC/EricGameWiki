@@ -4,14 +4,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.wiki.admin.wiki.dao.IWikiMainDataDao;
 import com.wiki.admin.wiki.dao.IWikiMainDao;
 import com.wiki.admin.wiki.dao.dynamic.WikiDynamicDataDao;
+import com.wiki.admin.wiki.model.dto.ImportResult;
 import com.wiki.admin.wiki.model.dto.WikiDataDetailDo;
 import com.wiki.admin.wiki.model.dto.WikiMainDataDo;
 import com.wiki.admin.wiki.model.dto.WikiMainDo;
 import com.wiki.admin.wiki.model.request.WikiDataRequest;
 import com.wiki.admin.wiki.model.response.WikiDataVo;
+import com.wiki.admin.wiki.service.IWikiCRPService;
 import com.wiki.admin.wiki.service.IWikiDataService;
 import com.wiki.admin.wiki.util.DynamicFieldMaps;
 import com.wiki.admin.wiki.util.DynamicTableSqlBuilder;
+import com.wiki.admin.wiki.util.ImportExportProcessor;
 import com.wiki.admin.wiki.util.WikiConstants;
 import com.wiki.common.constant.CommonConstants;
 import com.wiki.common.exception.BusinessException;
@@ -60,6 +63,8 @@ public class WikiDataServiceImpl implements IWikiDataService {
     private final IWikiMainDataDao wikiMainDataDao;
     private final IWikiMainDao wikiMainDao;
     private final WikiDynamicDataDao wikiDynamicDataDao;
+    private final ImportExportProcessor importExportProcessor;
+    private final IWikiCRPService wikiCRPService;
 
     @Override
     public ListResult<WikiDataVo> list(ApiRequest<WikiDataRequest> request) {
@@ -166,6 +171,35 @@ public class WikiDataServiceImpl implements IWikiDataService {
         String tableName = DynamicTableSqlBuilder.buildTableName(wikiMain, meta);
         ensureTableExists(tableName);
         wikiDynamicDataDao.batchDeleteByIds(tableName, fieldIds);
+    }
+
+    @Override
+    public byte[] template(String fieldDataId) {
+        WikiMainDataDo meta = loadMeta(fieldDataId);
+        WikiMainDo wikiMain = loadMain(meta.getFieldMainId());
+        return importExportProcessor.buildTemplate(meta);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ImportResult importData(WikiDataRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "请求数据不能为空");
+        }
+        WikiMainDataDo meta = loadMeta(request.getFieldDataId());
+        WikiMainDo wikiMain = loadMain(meta.getFieldMainId());
+        // 跨模块调用经 CRPService 读取附件物理文件路径，禁止直接访问 admin_attachment 表
+        String filePath = wikiCRPService.loadAttachmentFilePath(request.getFieldAttachmentId());
+        boolean skipFail = Boolean.TRUE.equals(request.getSkipFail());
+        boolean skipError = Boolean.TRUE.equals(request.getSkipError());
+        return importExportProcessor.importRows(wikiMain, meta, filePath, skipFail, skipError);
+    }
+
+    @Override
+    public byte[] export(String fieldDataId) {
+        WikiMainDataDo meta = loadMeta(fieldDataId);
+        WikiMainDo wikiMain = loadMain(meta.getFieldMainId());
+        return importExportProcessor.export(wikiMain, meta);
     }
 
     // ===== 内部：三类型列表查询 =====

@@ -184,6 +184,7 @@ wiki 模块开发分为三期，每期可独立验收：
 
 ### TASK-W2-01 实现通用动态查询层
 
+- **状态**: 已完成（2026-09-15）
 - **来源文档**: [wiki技术方案.md](wiki技术方案.md) 4
 - **前置依赖**: TASK-W1-07
 - **任务内容**: 完善 `WikiDynamicDataDao`（count/select/insert/update/deleteById/batchInsert/batchDeleteByIds）；通过 `SqlSession` 执行原生 SQL，`#{paramN}` 命名参数绑定；关联项查询支持 `joinClauses` 动态联表（LEFT JOIN 目标动态表），联表列名携带表别名前缀

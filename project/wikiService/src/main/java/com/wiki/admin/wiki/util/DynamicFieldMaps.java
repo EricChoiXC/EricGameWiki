@@ -2,9 +2,14 @@ package com.wiki.admin.wiki.util;
 
 import com.wiki.admin.wiki.model.dto.WikiDataDetailDo;
 import com.wiki.admin.wiki.model.dto.WikiMainDataDo;
+import com.wiki.admin.wiki.model.dto.WikiMainDo;
+import com.wiki.common.exception.BusinessException;
+import com.wiki.common.exception.ErrorCode;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +25,7 @@ import java.util.Map;
  *   <li>图鉴类包含固定列 fieldName/fieldCode</li>
  *   <li>关联项的 join 明细生成 field${DataName}Id 属性</li>
  *   <li>文档类包含固定列 fieldName/fieldCode/fieldContext</li>
+ *   <li>关联项联表查询经 {@link #buildJoinQuery} 生成带表别名前缀的白名单与 LEFT JOIN 片段（技术方案 4.5）</li>
  * </ul>
  *
  * @author Eric
@@ -40,6 +46,12 @@ public final class DynamicFieldMaps {
     public static final String FIELD_CONTEXT = "fieldContext";
     /** 附件等非物理列数据：field_data（图鉴类/关联项） */
     public static final String FIELD_DATA = "fieldData";
+
+    /** 联表查询时基础表固定别名（对应技术方案 4.5） */
+    public static final String BASE_ALIAS = "base";
+
+    /** 联表查询时关联目标表别名前缀（t1、t2...） */
+    private static final String JOIN_ALIAS_PREFIX = "t";
 
     /**
      * 根据数据项元数据构建查询字段白名单，对应技术方案 4.2。
@@ -164,5 +176,126 @@ public final class DynamicFieldMaps {
      */
     public static Map<String, String> empty() {
         return Collections.emptyMap();
+    }
+
+    // ===== 关联项联表查询（技术方案 4.5） =====
+
+    /**
+     * 关联项联表查询上下文。
+     * <p>
+     * 一次构建同时产出三件套，供 {@code WikiDataService}（TASK-W2-02）直接消费：
+     * <ul>
+     *   <li>{@code fieldColumnMap}：过滤/排序白名单（列名携带 {@code base.} / {@code tN.} 前缀），
+     *       直接传入 {@code QueryConditionBuilder.build(...)} 与 {@code SqlSortBuilder.buildOrderBy(...)}</li>
+     *   <li>{@code selectColumns}：SELECT 列片段（含 {@code tN.field_name AS enemy_name} 联表列）</li>
+     *   <li>{@code joinClauses}：LEFT JOIN 片段，传入 {@code WikiDynamicDataDao}</li>
+     * </ul>
+     */
+    public static class JoinQuery {
+
+        private final Map<String, String> fieldColumnMap;
+        private final List<String> selectColumns;
+        private final List<String> joinClauses;
+
+        JoinQuery(Map<String, String> fieldColumnMap, List<String> selectColumns, List<String> joinClauses) {
+            this.fieldColumnMap = fieldColumnMap;
+            this.selectColumns = selectColumns;
+            this.joinClauses = joinClauses;
+        }
+
+        /**
+         * 过滤/排序白名单：Java 属性名 → 带表别名前缀的列名。
+         */
+        public Map<String, String> getFieldColumnMap() {
+            return fieldColumnMap;
+        }
+
+        /**
+         * SELECT 列片段（如 {@code base.field_id}、{@code t1.field_name AS enemy_name}）。
+         */
+        public List<String> getSelectColumns() {
+            return selectColumns;
+        }
+
+        /**
+         * LEFT JOIN 片段列表（如 {@code LEFT JOIN `wiki_re9_monster` t1 ON base.field_enemy_id = t1.field_id}）。
+         */
+        public List<String> getJoinClauses() {
+            return joinClauses;
+        }
+
+        /**
+         * 拼接后的 SELECT 列片段（逗号 + 空格分隔），可直接传入 {@code WikiDynamicDataDao.selectByCondition}。
+         */
+        public String getColumnsSql() {
+            return String.join(", ", selectColumns);
+        }
+    }
+
+    /**
+     * 构建关联项联表查询上下文，对应技术方案 4.5。
+     * <p>
+     * 基础表别名固定 {@code base}，每个 {@code type=join} 明细按顺序生成 {@code t1}/{@code t2}...
+     * 目标表别名，并：
+     * <ul>
+     *   <li>生成 {@code LEFT JOIN `wiki_${simpleName}_${targetDataName}` tN ON tN.field_id = base.field_${dataName}_id}</li>
+     *   <li>在 SELECT 列中追加 {@code tN.field_name AS ${dataName}_name}、{@code tN.field_code AS ${dataName}_code}</li>
+     *   <li>在白名单中追加 {@code field${DataName}Name} / {@code field${DataName}Code}（关联数据模糊筛选）</li>
+     * </ul>
+     * 表名/列名经 {@code DynamicTableSqlBuilder} 白名单正则校验，杜绝 SQL 注入。
+     *
+     * @param wikiMain     所属项目（提供简称，用于目标动态表名）
+     * @param base         关联项数据项元数据（{@code fieldDataType = join}）
+     * @param joinTargets  关联目标数据项列表（按明细 {@code join} id 匹配）
+     * @return 联表查询上下文
+     */
+    public static JoinQuery buildJoinQuery(WikiMainDo wikiMain, WikiMainDataDo base,
+                                           List<WikiMainDataDo> joinTargets) {
+        if (base == null || !WikiConstants.DATA_TYPE_JOIN.equals(base.getFieldDataType())) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "仅关联项数据项支持联表查询");
+        }
+        if (wikiMain == null) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "联表查询缺少所属项目");
+        }
+        Map<String, WikiMainDataDo> targetById = new LinkedHashMap<>();
+        if (joinTargets != null) {
+            for (WikiMainDataDo target : joinTargets) {
+                if (target != null && target.getFieldId() != null) {
+                    targetById.put(target.getFieldId(), target);
+                }
+            }
+        }
+
+        Map<String, String> fieldMap = new LinkedHashMap<>(buildWithAlias(base, BASE_ALIAS));
+        List<String> selectColumns = new ArrayList<>();
+        List<String> joinClauses = new ArrayList<>();
+        selectColumns.add(BASE_ALIAS + ".field_id");
+
+        int aliasIndex = 1;
+        for (WikiDataDetailDo detail : DynamicTableSqlBuilder.parseDetails(base.getFieldDataJson())) {
+            String dataName = detail.getDataName();
+            if (WikiConstants.DATA_TYPE_JOIN.equals(detail.getType())) {
+                WikiMainDataDo target = targetById.get(detail.getJoin());
+                if (target == null) {
+                    throw new BusinessException(ErrorCode.BAD_REQUEST,
+                            "关联目标数据项不存在: " + detail.getJoin());
+                }
+                String alias = JOIN_ALIAS_PREFIX + aliasIndex++;
+                String columnId = "field_" + dataName + "_id";
+                selectColumns.add(BASE_ALIAS + "." + columnId);
+                selectColumns.add(alias + ".field_name AS " + dataName + "_name");
+                selectColumns.add(alias + ".field_code AS " + dataName + "_code");
+                String targetTable = DynamicTableSqlBuilder.buildTableName(wikiMain, target);
+                joinClauses.add("LEFT JOIN `" + targetTable + "` " + alias
+                        + " ON " + alias + ".field_id = " + BASE_ALIAS + "." + columnId);
+                String prefix = "field" + upperFirst(dataName);
+                fieldMap.put(prefix + "Name", alias + ".field_name");
+                fieldMap.put(prefix + "Code", alias + ".field_code");
+            } else if (!"attachment".equals(detail.getType())) {
+                selectColumns.add(BASE_ALIAS + ".field_" + dataName);
+            }
+        }
+        selectColumns.add(BASE_ALIAS + ".field_data");
+        return new JoinQuery(fieldMap, selectColumns, joinClauses);
     }
 }

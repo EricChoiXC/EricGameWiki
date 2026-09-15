@@ -1,6 +1,6 @@
 package com.wiki.admin.wiki.dao.dynamic;
 
-import com.wiki.admin.wiki.dao.WikiDynamicDataDao;
+import com.wiki.admin.wiki.dao.dynamic.WikiDynamicDataDao;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
@@ -29,8 +29,8 @@ import java.util.Map;
  * 表名 / 列名经 {@code DynamicTableSqlBuilder} / {@code DynamicFieldMaps} 白名单校验后拼接，
  * 本类不直接接受外部输入，仅执行传入的（已校验的）SQL 片段。
  * <p>
- * TASK-W1-07 实现 DDL 执行与表存在性校验、动态表 CRUD 基础能力；
- * 关联项联表查询（joinClauses）等高级查询在 TASK-W2-01 完善。
+ * count/select 支持 {@code joinClauses} 动态联表（关联项查询）：
+ * 联表时基础表使用别名 {@code base}，联表列名携带表别名前缀（见技术方案 4.5）。
  *
  * @author Eric
  * @date 2026/9/20
@@ -66,10 +66,11 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
     }
 
     @Override
-    public long countByCondition(String tableName, String whereSql, Map<String, Object> params) {
+    public long countByCondition(String tableName, List<String> joinClauses, String whereSql,
+                                 Map<String, Object> params) {
         Map<String, Object> p = params == null ? new HashMap<>() : new HashMap<>(params);
-        // 表名经白名单校验后直接拼接，不参与参数绑定
-        String sql = "SELECT COUNT(1) FROM `" + tableName + "`";
+        // 表名/join 片段经白名单校验后直接拼接，不参与参数绑定
+        String sql = "SELECT COUNT(1)" + renderFrom(tableName, joinClauses);
         if (whereSql != null && !whereSql.isBlank()) {
             sql += " WHERE " + whereSql;
         }
@@ -78,12 +79,12 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
     }
 
     @Override
-    public List<Map<String, Object>> selectByCondition(String tableName, String columns, String whereSql,
-                                                        String orderBySql, long offset, int pageSize,
+    public List<Map<String, Object>> selectByCondition(String tableName, String columns, List<String> joinClauses,
+                                                        String whereSql, String orderBySql, long offset, int pageSize,
                                                         boolean needPage, Map<String, Object> params) {
         Map<String, Object> p = params == null ? new HashMap<>() : new HashMap<>(params);
         String cols = (columns == null || columns.isBlank()) ? "*" : columns;
-        String sql = "SELECT " + cols + " FROM `" + tableName + "`";
+        String sql = "SELECT " + cols + renderFrom(tableName, joinClauses);
         if (whereSql != null && !whereSql.isBlank()) {
             sql += " WHERE " + whereSql;
         }
@@ -192,6 +193,34 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
         String sql = "DELETE FROM `" + tableName + "` WHERE field_id IN ("
                 + String.join(", ", placeholders) + ")";
         return executeUpdate(sql, params);
+    }
+
+    // ===== 内部：SQL 拼接 =====
+
+    /**
+     * 拼接 FROM 子句：无联表时 {@code FROM `table`}；
+     * 有联表时基础表使用别名 {@code base} 并追加 LEFT JOIN 片段（见技术方案 4.5）。
+     * <p>
+     * 表名与 join 片段由调用方（Service 层经 {@code DynamicTableSqlBuilder}）白名单校验，
+     * 本方法仅做字符串拼接，不直接接受外部输入。
+     *
+     * @param tableName   基础动态表名（已白名单校验）
+     * @param joinClauses LEFT JOIN 片段列表，可为 null/空
+     * @return 完整 FROM 子句
+     */
+    static String renderFrom(String tableName, List<String> joinClauses) {
+        StringBuilder sql = new StringBuilder(" FROM `").append(tableName).append("`");
+        if (joinClauses == null || joinClauses.isEmpty()) {
+            return sql.toString();
+        }
+        sql.append(" base");
+        for (String clause : joinClauses) {
+            if (clause == null || clause.isBlank()) {
+                continue;
+            }
+            sql.append(' ').append(clause.trim());
+        }
+        return sql.toString();
     }
 
     // ===== 内部：动态 SQL 执行 =====

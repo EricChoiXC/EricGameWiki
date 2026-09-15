@@ -43,12 +43,11 @@
         <el-row :gutter="0">
           <el-col :span="12">
             <el-form-item label="发行日期">
-              <el-date-picker
+              <DateTimePicker
                 v-model="form.fieldPublishDate"
-                type="datetime"
-                placeholder="请选择发行日期"
-                value-format="YYYY-MM-DDTHH:mm:ss"
-                style="width: 100%"
+                field-name="发行日期"
+                calendar-type="datetime"
+                :datetime-format="'yyyy-MM-dd\'T\'HH:mm:ss'"
               />
             </el-form-item>
           </el-col>
@@ -65,22 +64,16 @@
           </el-col>
         </el-row>
 
-        <!-- 维护人员（AdminOrgUser 多选） -->
+        <!-- 维护人员（普通选择器多选） -->
         <el-form-item label="维护人员">
-          <el-select
-            v-model="form.fieldManagers"
-            multiple
-            filterable
-            placeholder="请选择维护人员"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="user in managerOptions"
-              :key="user.fieldId"
-              :label="user.fieldName"
-              :value="user.fieldId"
-            />
-          </el-select>
+          <SimpleSelector
+            v-model:field-id="managerIdsText"
+            v-model:field-name="managerNamesText"
+            url="/org/user/list"
+            :filter="managerFilter"
+            :multi="true"
+            :septarator="';'"
+          />
         </el-form-item>
 
         <!-- 拓展信息明细行（动态行） -->
@@ -113,26 +106,14 @@
                   :controls="false"
                   style="width: 100%"
                 />
-                <el-date-picker
-                  v-else-if="row.type === 'date'"
-                  v-model="row.value"
-                  type="date"
-                  value-format="YYYY-MM-DD"
-                  style="width: 100%"
-                />
-                <el-date-picker
+                <DateTimePicker v-else-if="row.type === 'date'" v-model="row.value" calendar-type="date" />
+                <DateTimePicker
                   v-else-if="row.type === 'datetime'"
                   v-model="row.value"
-                  type="datetime"
-                  value-format="YYYY-MM-DDTHH:mm:ss"
-                  style="width: 100%"
+                  calendar-type="datetime"
+                  :datetime-format="'yyyy-MM-dd\'T\'HH:mm:ss'"
                 />
-                <el-time-picker
-                  v-else-if="row.type === 'time'"
-                  v-model="row.value"
-                  value-format="HH:mm:ss"
-                  style="width: 100%"
-                />
+                <DateTimePicker v-else-if="row.type === 'time'" v-model="row.value" calendar-type="time" />
                 <el-switch
                   v-else-if="row.type === 'boolean'"
                   v-model="row.value"
@@ -174,6 +155,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Plus } from '@element-plus/icons-vue'
 import { wikiMainApi } from '@/api/wiki'
+import SimpleSelector from '@/components/SimpleSelector.vue'
+import DateTimePicker from '@/components/DateTimePicker.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -221,6 +204,14 @@ const rules = {
 /** 维护人员候选用户列表（来自 /wiki/init） */
 const managerOptions = ref([])
 
+/** 维护人员选择：SimpleSelector 多选绑定值（';' 分隔），保存时还原为 id 数组 */
+const managerIdsText = ref('')
+const managerNamesText = ref('')
+const managerFilter = [
+  { text: '名称', name: 'fieldName' },
+  { text: '登录名', name: 'fieldLoginName' }
+]
+
 function addExtend() {
   form.fieldExtend.push({ name: '', type: 'text', value: '' })
 }
@@ -249,6 +240,15 @@ async function loadDetail() {
     fieldManagers: data.fieldManagers || [],
     fieldExtend: data.fieldExtend || []
   })
+  // 维护人员：按 init 返回的用户列表还原名称，供 SimpleSelector 展示
+  const pairs = (data.fieldManagers || [])
+    .map((id) => {
+      const hit = managerOptions.value.find((user) => user.fieldId === id)
+      return [id, hit ? hit.fieldName : '']
+    })
+    .filter(([, name]) => name)
+  managerIdsText.value = pairs.map(([id]) => id).join(';')
+  managerNamesText.value = pairs.map(([, name]) => name).join(';')
 }
 
 async function onSave() {
@@ -260,7 +260,12 @@ async function onSave() {
   }
   saving.value = true
   try {
-    const payload = { data: { ...form } }
+    const payload = {
+      data: {
+        ...form,
+        fieldManagers: managerIdsText.value ? managerIdsText.value.split(';') : []
+      }
+    }
     if (isEdit.value) {
       await wikiMainApi.update(payload)
       ElMessage.success('编辑成功')

@@ -39,15 +39,15 @@
           />
         </el-form-item>
 
-        <!-- 用户（占整行） -->
+        <!-- 用户（占整行）：普通选择器多选 -->
         <el-form-item label="用户" prop="userIds">
-          <el-transfer
-            v-model="userIds"
-            :data="userData"
-            :titles="['未分配用户', '已分配用户']"
-            filterable
-            filter-placeholder="请输入用户名搜索"
-            style="width: 100%"
+          <SimpleSelector
+            v-model:field-id="userIdsText"
+            v-model:field-name="userNamesText"
+            url="/org/user/list"
+            :filter="userFilter"
+            :multi="true"
+            :septarator="';'"
           />
         </el-form-item>
 
@@ -67,6 +67,7 @@ import { ElMessage } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { permissionApi, roleApi, userApi } from '@/api/org'
 import { buildListQuery } from '@/utils/query'
+import SimpleSelector from '@/components/SimpleSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,13 +90,20 @@ const rules = {
   fieldCode: [{ required: true, message: '请输入编号', trigger: 'blur' }]
 }
 
-// 穿梭框数据源
+// 权限穿梭框数据源
 const permissionData = ref([])
-const userData = ref([])
 
-// 已选中的权限/用户 id
+// 已选中的权限 id
 const permissionIds = ref([])
-const userIds = ref([])
+
+// 用户选择：SimpleSelector 多选绑定值（';' 分隔），保存时还原为 id 数组
+const userIdsText = ref('')
+const userNamesText = ref('')
+const userNameMap = new Map()
+const userFilter = [
+  { text: '名称', name: 'fieldName' },
+  { text: '登录名', name: 'fieldLoginName' }
+]
 
 async function loadAllPermissions() {
   const res = await permissionApi.list(buildListQuery([], { needPage: false }))
@@ -110,11 +118,10 @@ async function loadAllPermissions() {
 async function loadAllUsers() {
   const res = await userApi.list(buildListQuery([], { needPage: false }))
   const list = res.list || []
-  userData.value = list.map((item) => ({
-    key: item.fieldId,
-    label: item.fieldName || item.fieldLoginName,
-    disabled: false
-  }))
+  userNameMap.clear()
+  list.forEach((item) => {
+    userNameMap.set(item.fieldId, item.fieldName || item.fieldLoginName || '')
+  })
 }
 
 async function loadDetail() {
@@ -127,9 +134,14 @@ async function loadDetail() {
     fieldCode: data.fieldCode || '',
     fieldStatus: data.fieldStatus || 'ENABLED'
   })
-  // 已分配权限与用户（后端 load 返回 data.roleIds / data.userIds 纯 id 数组）
+  // 已分配权限（后端 load 返回 data.roleIds 纯 id 数组）
   permissionIds.value = data.roleIds || []
-  userIds.value = data.userIds || []
+  // 已分配用户：按全量用户映射还原名称，供 SimpleSelector 展示
+  const pairs = (data.userIds || [])
+    .map((id) => [id, userNameMap.get(id)])
+    .filter(([, name]) => name)
+  userIdsText.value = pairs.map(([id]) => id).join(';')
+  userNamesText.value = pairs.map(([, name]) => name).join(';')
 }
 
 async function onSave() {
@@ -142,7 +154,11 @@ async function onSave() {
   saving.value = true
   try {
     const payload = {
-      data: { ...form, roleIds: permissionIds.value, userIds: userIds.value }
+      data: {
+        ...form,
+        roleIds: permissionIds.value,
+        userIds: userIdsText.value ? userIdsText.value.split(';') : []
+      }
     }
     if (isEdit.value) {
       await roleApi.update(payload)

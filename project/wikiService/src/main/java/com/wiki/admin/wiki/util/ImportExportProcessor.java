@@ -218,9 +218,16 @@ public class ImportExportProcessor {
         // 关联数据列需要目标记录的 field_code，经 DynamicFieldMaps 联表查询（技术方案 4.5）
         List<WikiMainDataDo> targets = wikiMainDataDao.selectByMainId(meta.getFieldMainId());
         DynamicFieldMaps.JoinQuery joinQuery = DynamicFieldMaps.buildJoinQuery(wikiMain, meta, targets);
-        List<Map<String, Object>> rows = wikiDynamicDataDao.selectByCondition(
-                tableName, joinQuery.getColumnsSql(), joinQuery.getJoinClauses(),
-                null, "ORDER BY base.field_id", 0, 0, false, null);
+        List<Map<String, Object>> rows;
+        if (joinQuery.getJoinClauses().isEmpty()) {
+            // 无关联列时退化为普通查询，避免 base. 前缀无别名报错（与 WikiDataServiceImpl.loadJoinRecord 一致）
+            rows = wikiDynamicDataDao.selectByCondition(
+                    tableName, null, null, null, "ORDER BY field_id", 0, 0, false, null);
+        } else {
+            rows = wikiDynamicDataDao.selectByCondition(
+                    tableName, joinQuery.getColumnsSql(), joinQuery.getJoinClauses(),
+                    null, "ORDER BY base.field_id", 0, 0, false, null);
+        }
 
         List<ColumnBinding> bindings = buildBindings(meta);
         try (Workbook workbook = new XSSFWorkbook();

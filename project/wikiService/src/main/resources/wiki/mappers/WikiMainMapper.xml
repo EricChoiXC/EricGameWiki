@@ -28,14 +28,14 @@
     </select>
 
     <select id="selectByCondition" resultMap="mainMap">
-        SELECT <include refid="cols"/> FROM wiki_main
+        SELECT <include refid="cols"/> FROM wiki_main m
         <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
         <if test="orderBySql != null and orderBySql != ''"> ${orderBySql} </if>
         <if test="needPage"> LIMIT #{pageSize} OFFSET #{offset} </if>
     </select>
 
     <select id="countByCondition" resultType="long">
-        SELECT COUNT(1) FROM wiki_main
+        SELECT COUNT(1) FROM wiki_main m
         <if test="whereSql != null and whereSql != ''"> WHERE ${whereSql} </if>
     </select>
 

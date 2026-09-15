@@ -224,6 +224,7 @@ wiki 模块开发分为三期，每期可独立验收：
 
 ### TASK-W3-02 实现 ImportExportProcessor 导入导出组件
 
+- **状态**: 已完成（2026-09-15）
 - **来源文档**: [wiki技术方案.md](wiki技术方案.md) 6、[wiki业务逻辑.md](wiki业务逻辑.md) 6.5-6.6
 - **前置依赖**: TASK-W2-01、TASK-W1-05
 - **任务内容**: `ImportExportProcessor`（模板生成、文件解析 POI、数据校验、分批导入、导出）；模板下载首行标题行、关联数据显示 `${关联数据}编号`、不列附件类明细；导入读取文件→校验合理性→（异常跳过开关）→分批 batchInsert 每批 200 条→（失败跳过开关）；导出全量数据为 xlsx；复用 `WikiCRPService` 调用 `sys.attachment` 读取上传的 xlsx 附件

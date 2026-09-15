@@ -60,6 +60,9 @@ const saving = ref(false)
 // 配置项值集合，key 为配置项 key
 const configValues = reactive({})
 
+// 加载到的配置项列表（含 fieldId/fieldCode），保存时按 fieldCode 定位 fieldId
+const settingsList = ref([])
+
 // 初始化默认值
 ATTACHMENT_CONFIG_ITEMS.forEach((item) => {
   configValues[item.key] = item.defaultValue
@@ -70,6 +73,7 @@ async function loadConfig() {
   try {
     const res = await configApi.init()
     const list = res.list || []
+    settingsList.value = list
     list.forEach((item) => {
       if (item.fieldCode && configValues.hasOwnProperty(item.fieldCode)) {
         const meta = ATTACHMENT_CONFIG_ITEMS.find((c) => c.key === item.fieldCode)
@@ -95,9 +99,14 @@ async function onSave() {
       } else {
         val = val == null ? '' : String(val)
       }
-      return { fieldKey: item.key, fieldValue: val }
+      return { fieldCode: item.key, fieldValue: val }
     })
-    await configApi.saveBatch(list)
+    // 按 fieldCode 匹配配置项 id 后逐项更新
+    for (const cfg of list) {
+      const setting = settingsList.value.find((s) => s.fieldCode === cfg.fieldCode)
+      if (!setting) continue
+      await configApi.update(setting.fieldId, cfg.fieldValue)
+    }
     ElMessage.success('保存成功')
     loadConfig()
   } finally {

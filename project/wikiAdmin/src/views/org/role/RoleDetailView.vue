@@ -68,7 +68,8 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { roleApi } from '@/api/org'
+import { permissionApi, roleApi, userApi } from '@/api/org'
+import { buildListQuery } from '@/utils/query'
 import { USER_STATUS_OPTIONS } from '@/utils/constants'
 
 const route = useRoute()
@@ -90,8 +91,27 @@ async function loadDetail() {
   try {
     const res = await roleApi.load(fieldId.value)
     detail.value = res.data || {}
-    permissionList.value = res.map?.authRoleList || []
-    userList.value = res.map?.authUserList || []
+    const roleIds = res.data?.roleIds || []
+    const userIds = res.data?.userIds || []
+    // 后端仅返回 id 数组，此处经权限/用户全量列表映射为展示对象
+    const [permRes, userRes] = await Promise.all([
+      permissionApi.list(buildListQuery([], { needPage: false })),
+      userApi.list(buildListQuery([], { needPage: false }))
+    ])
+    const permMap = new Map((permRes.list || []).map((p) => [p.fieldId, p]))
+    const userMap = new Map((userRes.list || []).map((u) => [u.fieldId, u]))
+    permissionList.value = roleIds.map((id) => {
+      const p = permMap.get(id)
+      return p
+        ? { fieldRoleId: p.fieldId, fieldRoleName: p.fieldName, fieldRoleCode: p.fieldCode }
+        : { fieldRoleId: id, fieldRoleName: id, fieldRoleCode: '' }
+    })
+    userList.value = userIds.map((id) => {
+      const u = userMap.get(id)
+      return u
+        ? { fieldUserId: u.fieldId, fieldUserName: u.fieldName, fieldUserLoginName: u.fieldLoginName }
+        : { fieldUserId: id, fieldUserName: id, fieldUserLoginName: '' }
+    })
   } finally {
     loading.value = false
   }

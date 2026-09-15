@@ -29,7 +29,9 @@ export const userApi = {
    */
   updateStatus(fieldId, fieldStatus) {
     return request.patch('/org/user/updateStatus', {
-      data: { fieldId, fieldStatus }
+      data: { fieldStatus }
+    }, {
+      params: { fieldId }
     })
   },
 
@@ -48,7 +50,7 @@ export const userApi = {
    * @param {Object} payload { oldPassword, newPassword }
    */
   changePassword(payload) {
-    return request.post('/org/user/changePassword', { data: payload })
+    return request.post('/org/user/changePassword', payload)
   },
 
   /**
@@ -92,24 +94,10 @@ export const roleApi = {
    */
   updateStatus(fieldId, fieldStatus) {
     return request.patch('/org/auth/updateStatus', {
-      data: { fieldId, fieldStatus }
+      data: { fieldStatus }
+    }, {
+      params: { fieldId }
     })
-  },
-
-  /**
-   * 保存角色（含权限与用户分配）
-   * @param {Object} payload { data: roleVo, map: { authRoleList, authUserList } }
-   */
-  saveWithAssign(payload) {
-    return request.post('/org/auth/save', payload)
-  },
-
-  /**
-   * 更新角色（含权限与用户分配）
-   * @param {Object} payload { data: roleVo, map: { authRoleList, authUserList } }
-   */
-  updateWithAssign(payload) {
-    return request.patch('/org/auth/update', payload)
   }
 }
 
@@ -153,17 +141,24 @@ export const permissionApi = createStandardApi('/org/role')
 export const loginLogApi = createStandardApi('/org/loginLog')
 
 // ---------------------------------------------------------------------------
-// 系统配置（admin-org 模块配置项）
+// 系统配置（admin_common_setting，docs/admin/公共服务.md）
+// 后端 Controller 前缀 /api/v1/admin/sys/setting（CommonSettingController）
 // ---------------------------------------------------------------------------
 export const configApi = {
-  ...createStandardApi('/org/config'),
+  /**
+   * 配置项列表加载（含 fieldId/fieldCode/fieldValue，供页面回显与保存时定位 fieldId）
+   */
+  init() {
+    return request.get('/sys/setting/init')
+  },
 
   /**
-   * 批量保存配置项
-   * @param {Array<{ fieldKey: string, fieldValue: string }>} list
+   * 更新单个配置项值
+   * @param {string} fieldId 配置项 id
+   * @param {string} fieldValue 配置值
    */
-  saveBatch(list) {
-    return request.post('/org/config/save', { list })
+  update(fieldId, fieldValue) {
+    return request.patch('/sys/setting/update', { data: { fieldValue } }, { params: { fieldId } })
   }
 }
 

@@ -85,8 +85,6 @@ export function createStandardApi(baseUrl) {
  *  - org 用户管理 / attachment 附件管理 / audit 审计
  */
 export const sysOrgApi = createStandardApi('/org/user')
-export const sysAttachmentApi = createStandardApi('/sys/attachment')
-export const sysAuditApi = createStandardApi('/sys/audit')
 
 /**
  * 公共 ID 预生成接口
@@ -106,8 +104,6 @@ export const idApi = {
 
 export default {
   sysOrgApi,
-  sysAttachmentApi,
-  sysAuditApi,
   idApi,
   createStandardApi
 }

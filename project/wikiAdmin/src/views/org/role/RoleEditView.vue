@@ -127,9 +127,9 @@ async function loadDetail() {
     fieldCode: data.fieldCode || '',
     fieldStatus: data.fieldStatus || 'ENABLED'
   })
-  // 已分配权限与用户
-  permissionIds.value = (res.map?.authRoleList || []).map((r) => r.fieldRoleId)
-  userIds.value = (res.map?.authUserList || []).map((u) => u.fieldUserId)
+  // 已分配权限与用户（后端 load 返回 data.roleIds / data.userIds 纯 id 数组）
+  permissionIds.value = data.roleIds || []
+  userIds.value = data.userIds || []
 }
 
 async function onSave() {
@@ -142,17 +142,13 @@ async function onSave() {
   saving.value = true
   try {
     const payload = {
-      data: { ...form },
-      map: {
-        authRoleList: permissionIds.value.map((id) => ({ fieldRoleId: id })),
-        authUserList: userIds.value.map((id) => ({ fieldUserId: id }))
-      }
+      data: { ...form, roleIds: permissionIds.value, userIds: userIds.value }
     }
     if (isEdit.value) {
-      await roleApi.updateWithAssign(payload)
+      await roleApi.update(payload)
       ElMessage.success('编辑成功')
     } else {
-      await roleApi.saveWithAssign(payload)
+      await roleApi.save(payload)
       ElMessage.success('新建成功')
     }
     router.push('/admin/org/role')

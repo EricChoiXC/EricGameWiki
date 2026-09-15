@@ -169,7 +169,8 @@ async function handleAvatarUpload({ file }) {
     formData.append('fieldModelName', props.fieldModelName)
     formData.append('fieldModelId', props.fieldModelId)
     formData.append('fieldKey', props.fieldKey)
-    const mainId = await attachmentApi.upload(formData)
+    const res = await attachmentApi.upload(formData)
+    const mainId = res.data
     avatarMainId.value = mainId
     // 立即生成本地预览
     revokeAvatarUrl()

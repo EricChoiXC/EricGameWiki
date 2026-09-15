@@ -169,7 +169,7 @@ onMounted(async () => {
   } else {
     // 新建场景：父组件负责预生成主键，供头像组件以 field_model_id 关联上传
     try {
-      form.fieldId = (await idApi.init()) || ''
+      form.fieldId = (await idApi.init())?.data || ''
     } catch {
       // 预生成失败不阻塞，头像上传时由组件提示
     }

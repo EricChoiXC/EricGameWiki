@@ -193,6 +193,7 @@ wiki 模块开发分为三期，每期可独立验收：
 
 ### TASK-W2-02 实现数据明细 CRUD Service / Controller（三类型分发）
 
+- **状态**: 已完成（2026-09-15）
 - **来源文档**: [wiki业务逻辑.md](wiki业务逻辑.md) 6.3、[wikiAPI接口设计文档.md](wikiAPI接口设计文档.md) 6
 - **前置依赖**: TASK-W2-01
 - **任务内容**: `IWikiDataService`/`WikiDataServiceImpl`（list/save/load/update/delete/batch-delete）；以 `fieldDataId` 为入口，加载元数据后按 `fieldDataType` 分发；图鉴类固定 name/code + 动态列、名称/编号模糊筛选、fieldCode 降序；关联项动态 join 列、关联数据模糊筛选、fieldId 降序、批量删除；文档类固定 name/code/context、名称/编号模糊筛选、fieldCode 降序；`WikiDataController`（`@RequestMapping("/api/v1/admin/wiki/data-item")`）

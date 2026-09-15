@@ -74,7 +74,7 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
         if (whereSql != null && !whereSql.isBlank()) {
             sql += " WHERE " + whereSql;
         }
-        Long count = executeSelectOne(sql, p);
+        Long count = executeSelectOne(sql, wrapParams(p));
         return count == null ? 0L : count;
     }
 
@@ -92,11 +92,11 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
             sql += " " + orderBySql;
         }
         if (needPage) {
-            sql += " LIMIT #{pageSize} OFFSET #{offset}";
+            sql += " LIMIT #{params.pageSize} OFFSET #{params.offset}";
             p.put("pageSize", pageSize);
             p.put("offset", offset);
         }
-        return executeSelectList(sql, p);
+        return executeSelectList(sql, wrapParams(p));
     }
 
     @Override
@@ -196,6 +196,16 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
     }
 
     // ===== 内部：SQL 拼接 =====
+
+    /**
+     * 将查询参数包装为 {@code params} 键，与 {@code QueryConditionBuilder} 生成的
+     * {@code #{params.p0}} 占位符对齐（XML Mapper 中同样以 {@code @Param("params")} 绑定）。
+     */
+    private static Map<String, Object> wrapParams(Map<String, Object> params) {
+        Map<String, Object> bind = new HashMap<>();
+        bind.put("params", params);
+        return bind;
+    }
 
     /**
      * 拼接 FROM 子句：无联表时 {@code FROM `table`}；

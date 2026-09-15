@@ -283,8 +283,8 @@ class WikiDataServiceImplTest {
 
         assertEquals(1, result.getRecords().size());
         String whereSql = whereCaptor.getValue();
-        assertTrue(whereSql.contains("t1.field_name LIKE CONCAT('%', #{p0}, '%')"));
-        assertTrue(whereSql.contains("t1.field_code LIKE CONCAT('%', #{p1}, '%')"));
+        assertTrue(whereSql.contains("t1.field_name LIKE CONCAT('%', #{params.p0}, '%')"));
+        assertTrue(whereSql.contains("t1.field_code LIKE CONCAT('%', #{params.p1}, '%')"));
         assertEquals("恶", paramsCaptor.getValue().get("p0"));
     }
 

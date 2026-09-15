@@ -16,7 +16,7 @@ import java.util.Map;
  * <p>
  * 输出包含：
  * <ul>
- *   <li>{@code whereSql}：以 {@code #{paramN}} 命名占位的 SQL 片段（不含 {@code WHERE} 关键字）</li>
+ *   <li>{@code whereSql}：以 {@code #{params.paramN}} 命名占位的 SQL 片段（不含 {@code WHERE} 关键字）</li>
  *   <li>{@code params}：占位符到值的映射</li>
  * </ul>
  * 字段名经白名单（fieldColumnMap）映射为列名，杜绝 SQL 注入；
@@ -188,7 +188,7 @@ public final class QueryConditionBuilder {
         String bind(Object value) {
             String name = "p" + (seq++);
             params.put(name, value);
-            return "#{" + name + "}";
+            return "#{params." + name + "}";
         }
     }
 }

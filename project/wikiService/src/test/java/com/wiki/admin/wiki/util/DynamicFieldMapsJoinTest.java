@@ -119,8 +119,8 @@ class DynamicFieldMapsJoinTest {
                 QueryCondition.leaf(QueryOperator.LIKE, "fieldEnemyCode", "evil")));
         QueryConditionBuilder.Built built = QueryConditionBuilder.build(root, jq.getFieldColumnMap());
 
-        assertTrue(built.getWhereSql().contains("t1.field_name LIKE CONCAT('%', #{p0}, '%')"));
-        assertTrue(built.getWhereSql().contains("t1.field_code LIKE CONCAT('%', #{p1}, '%')"));
+        assertTrue(built.getWhereSql().contains("t1.field_name LIKE CONCAT('%', #{params.p0}, '%')"));
+        assertTrue(built.getWhereSql().contains("t1.field_code LIKE CONCAT('%', #{params.p1}, '%')"));
         assertEquals("恶", built.getParams().get("p0"));
         assertEquals("evil", built.getParams().get("p1"));
     }

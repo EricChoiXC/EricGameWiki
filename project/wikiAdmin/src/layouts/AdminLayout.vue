@@ -87,6 +87,18 @@
               <template #title>系统配置</template>
             </el-menu-item>
           </el-sub-menu>
+
+          <!-- wiki 系统（docs/admin/wiki/wiki系统.md 菜单栏） -->
+          <el-sub-menu index="admin-wiki">
+            <template #title>
+              <el-icon><Collection /></el-icon>
+              <span>wiki</span>
+            </template>
+            <el-menu-item index="/admin/wiki" @click="onMenuClick('/admin/wiki', '项目列表')">
+              <el-icon><Notebook /></el-icon>
+              <template #title>项目列表</template>
+            </el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </aside>
 
@@ -168,11 +180,13 @@ import {
   ArrowLeft,
   ArrowRight,
   Avatar,
+  Collection,
   Document,
   Files,
   HomeFilled,
   Key,
   MoreFilled,
+  Notebook,
   Paperclip,
   Platform,
   Setting,

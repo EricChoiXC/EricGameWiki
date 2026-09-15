@@ -119,8 +119,8 @@ function onEdit(row) {
 }
 
 function onDataMaintain(row) {
-  // 数据维护入口（TASK-W2-03 范围，此处仅路由占位）
-  router.push(`/admin/wiki/${fieldMainId.value}/data`)
+  // 数据维护入口：按数据项类型路由到数据维护列表页（TASK-W2-03）
+  router.push(`/admin/wiki/${fieldMainId.value}/data-item/${row.fieldId}`)
 }
 
 function onWikiPage(row) {

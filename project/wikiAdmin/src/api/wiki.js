@@ -10,6 +10,7 @@ import { createStandardApi } from './system'
  *
  *  - 项目管理 → /wiki/...
  *  - 数据项管理 → /wiki/data/...
+ *  - 数据明细维护 → /wiki/data-item/...
  */
 
 // ---------------------------------------------------------------------------
@@ -58,7 +59,84 @@ export const wikiMainDataApi = {
   }
 }
 
+// ---------------------------------------------------------------------------
+// 数据明细维护（wiki 动态表数据，docs/admin/wiki/wikiAPI接口设计文档.md 第 6 节）
+// 以 fieldDataId 为入口，后端按数据项类型分发；动态列值统一放 fieldData（小驼峰 key）
+// ---------------------------------------------------------------------------
+export const wikiDataApi = {
+  /**
+   * API-W201 数据明细列表查询
+   * @param {Object} payload { data: { fieldDataId }, query: { pageNum, pageSize, needPage, data, sortField, sortOrder } }
+   */
+  list(payload) {
+    return request.post('/wiki/data-item/list', payload)
+  },
+
+  /**
+   * API-W202 数据明细新建（返回新建记录 id）
+   */
+  save(payload) {
+    return request.post('/wiki/data-item/save', payload)
+  },
+
+  /**
+   * API-W203 数据明细加载
+   * @param {string} fieldId 明细记录 id
+   * @param {string} fieldDataId 数据项 id
+   */
+  load(fieldId, fieldDataId) {
+    return request.get('/wiki/data-item/load', { params: { fieldId, fieldDataId } })
+  },
+
+  /**
+   * API-W204 数据明细更新
+   */
+  update(payload) {
+    return request.patch('/wiki/data-item/update', payload)
+  },
+
+  /**
+   * API-W205 数据明细删除
+   * @param {string} fieldId 明细记录 id
+   * @param {string} fieldDataId 数据项 id
+   */
+  remove(fieldId, fieldDataId) {
+    return request.delete('/wiki/data-item/delete', { params: { fieldId, fieldDataId } })
+  },
+
+  /**
+   * API-W206 数据明细批量删除（仅关联项）
+   */
+  batchDelete(payload) {
+    return request.post('/wiki/data-item/batch-delete', payload)
+  },
+
+  /**
+   * API-W207 导入模板下载（xlsx 文件流）
+   * @param {string} fieldDataId 数据项 id
+   */
+  template(fieldDataId) {
+    return request.get('/wiki/data-item/template', { params: { fieldDataId }, responseType: 'blob' })
+  },
+
+  /**
+   * API-W208 数据明细导入
+   * @param {Object} payload { data: { fieldDataId, fieldAttachmentId, skipFail, skipError } }
+   */
+  import(payload) {
+    return request.post('/wiki/data-item/import', payload)
+  },
+
+  /**
+   * API-W209 数据明细导出（xlsx 文件流）
+   */
+  export(payload) {
+    return request.post('/wiki/data-item/export', payload, { responseType: 'blob' })
+  }
+}
+
 export default {
   wikiMainApi,
-  wikiMainDataApi
+  wikiMainDataApi,
+  wikiDataApi
 }

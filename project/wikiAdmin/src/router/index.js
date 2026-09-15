@@ -154,6 +154,27 @@ const router = createRouter({
           name: 'WikiMainDataEdit',
           component: () => import('@/views/wiki/WikiMainDataEditView.vue'),
           meta: { title: '编辑数据项' }
+        },
+        // 数据维护列表（三类型动态路由）
+        {
+          path: 'admin/wiki/:mainId/data-item/:dataId',
+          name: 'WikiDataList',
+          component: () => import('@/views/wiki/WikiDataListView.vue'),
+          meta: { title: '数据维护', keepAlive: true }
+        },
+        // 数据维护新建
+        {
+          path: 'admin/wiki/:mainId/data-item/:dataId/create',
+          name: 'WikiDataCreate',
+          component: () => import('@/views/wiki/WikiDataEditView.vue'),
+          meta: { title: '新建数据' }
+        },
+        // 数据维护编辑
+        {
+          path: 'admin/wiki/:mainId/data-item/:dataId/edit/:id',
+          name: 'WikiDataEdit',
+          component: () => import('@/views/wiki/WikiDataEditView.vue'),
+          meta: { title: '编辑数据' }
         }
       ]
     },

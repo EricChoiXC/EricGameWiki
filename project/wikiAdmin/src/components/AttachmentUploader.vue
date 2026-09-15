@@ -207,9 +207,9 @@ async function handleUpload({ file }) {
     formData.append('fieldModelName', props.fieldModelName)
     formData.append('fieldModelId', props.fieldModelId)
     formData.append('fieldKey', props.fieldKey)
-    const mainId = await attachmentApi.upload(formData)
+    const res = await attachmentApi.upload(formData)
     ElMessage.success('上传成功')
-    emit('upload', { fieldId: mainId, file })
+    emit('upload', { fieldId: res.data, file })
     // 重新拉取列表以反映最新状态
     await loadList()
   } finally {

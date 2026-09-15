@@ -21,20 +21,15 @@
       <!-- 文件上传 -->
       <div class="wiki-import__section">
         <div class="wiki-import__section-label">第二步：上传 xlsx 导入文件</div>
-        <el-upload
-          :show-file-list="false"
-          :accept="'.xlsx'"
-          :before-upload="beforeUpload"
-          :http-request="handleUpload"
-          :disabled="uploading"
-        >
-          <el-button type="primary" :icon="Upload" :loading="uploading">选择文件</el-button>
-        </el-upload>
-        <div v-if="attachment" class="wiki-import__file">
-          <el-icon class="wiki-import__file-icon"><Document /></el-icon>
-          <span class="wiki-import__file-name">{{ attachment.fileName }}</span>
-        </div>
-        <div v-else class="wiki-import__section-tip">请选择需要导入的 .xlsx 文件（仅支持 xlsx 格式）。</div>
+        <AttachmentUploader
+          :field-model-name="modelName()"
+          :field-model-id="tempModelId"
+          field-key="import"
+          :file-type="'.xlsx'"
+          @upload="onUploaded"
+          @delete="onDeleted"
+        />
+        <div class="wiki-import__section-tip">请选择需要导入的 .xlsx 文件（仅支持 xlsx 格式）。</div>
       </div>
 
       <!-- 跳过开关 -->
@@ -68,10 +63,10 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Document, Download, Upload } from '@element-plus/icons-vue'
+import { Download } from '@element-plus/icons-vue'
 import { wikiDataApi } from '@/api/wiki'
-import { attachmentApi } from '@/api/attachment'
 import { idApi } from '@/api/system'
+import AttachmentUploader from '@/components/AttachmentUploader.vue'
 
 const props = defineProps({
   modelValue: {
@@ -102,7 +97,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'imported'])
 
 const templating = ref(false)
-const uploading = ref(false)
 const submitting = ref(false)
 const skipFail = ref(false)
 const skipError = ref(false)
@@ -173,33 +167,19 @@ async function onDownloadTemplate() {
 }
 
 /**
- * 上传前校验：仅允许 xlsx 格式。
+ * 上传成功（复用 AttachmentUploader 组件，上传后经 fieldKey=import 关联到临时 modelId）。
+ * @param {{ fieldId: string, file: File }} payload
  */
-function beforeUpload(file) {
-  const name = (file?.name || '').toLowerCase()
-  if (!name.endsWith('.xlsx')) {
-    ElMessage.error('仅支持 .xlsx 格式文件')
-    return false
-  }
-  return true
+function onUploaded({ fieldId, file }) {
+  attachment.value = { attachmentId: fieldId, fileName: file?.name || '导入文件' }
 }
 
 /**
- * 自定义上传：经附件组件上传 xlsx，获得附件 id（docs/admin/wiki/wiki技术方案.md 6.7）。
+ * 附件被删除：若删除的是当前选中导入文件，则清空已选附件，阻止提交。
  */
-async function handleUpload({ file }) {
-  uploading.value = true
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('fieldModelName', modelName())
-    formData.append('fieldModelId', tempModelId.value)
-    formData.append('fieldKey', 'import')
-    const res = await attachmentApi.upload(formData)
-    attachment.value = { attachmentId: res.data, fileName: file.name }
-    ElMessage.success('上传成功')
-  } finally {
-    uploading.value = false
+function onDeleted({ fieldId }) {
+  if (attachment.value?.attachmentId === fieldId) {
+    attachment.value = null
   }
 }
 
@@ -259,21 +239,6 @@ function saveBlob(blob, filename) {
       font-size: var(--font-size-sm);
       color: var(--el-text-color-secondary);
       line-height: var(--line-height-base);
-    }
-  }
-
-  &__file {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    margin-top: var(--spacing-sm);
-
-    &-icon {
-      color: var(--el-text-color-secondary);
-    }
-
-    &-name {
-      font-size: var(--font-size-sm);
     }
   }
 

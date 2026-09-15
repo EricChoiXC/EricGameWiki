@@ -124,7 +124,8 @@ function onDataMaintain(row) {
 }
 
 function onWikiPage(row) {
-  router.push(`/admin/wiki/${fieldMainId.value}/data`)
+  // wiki 页面维护入口（限图鉴类、文档类数据项）：TASK-W3-04
+  router.push(`/admin/wiki/${fieldMainId.value}/data-item/${row.fieldId}/page`)
 }
 
 async function onDelete(row) {

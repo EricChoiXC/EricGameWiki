@@ -127,16 +127,48 @@ export const wikiDataApi = {
     return request.post('/wiki/data-item/import', payload)
   },
 
+/**
+ * API-W209 数据明细导出（xlsx 文件流）
+ */
+export(payload) {
+  return request.post('/wiki/data-item/export', payload, { responseType: 'blob' })
+}
+}
+
+// ---------------------------------------------------------------------------
+// wiki 页面维护（wiki_main_data_wiki_page，docs/admin/wiki/wikiAPI接口设计文档.md 第 7 节）
+// ---------------------------------------------------------------------------
+export const wikiPageApi = {
   /**
-   * API-W209 数据明细导出（xlsx 文件流）
+   * API-W301 wiki 页面配置加载
+   * @param {string} fieldDataId 数据项 id
+   * @returns 响应 data: { fieldId, fieldDataId, fieldWikiPage: { displayInfos, displayFields } }
    */
-  export(payload) {
-    return request.post('/wiki/data-item/export', payload, { responseType: 'blob' })
+  load(fieldDataId) {
+    return request.get('/wiki/page/load', { params: { fieldDataId } })
+  },
+
+  /**
+   * API-W302 wiki 页面配置保存
+   * @param {Object} payload { data: { fieldDataId, fieldWikiPage: { displayInfos, displayFields } } }
+   */
+  save(payload) {
+    return request.post('/wiki/page/save', payload)
+  },
+
+  /**
+   * API-W303 wiki 页面配置初始化
+   * @param {string} fieldDataId 数据项 id
+   * @returns 响应 data: { dataItem: { fieldId, fieldName, fieldDataName, fieldDataType, details[] }, joinItems: [...] }
+   */
+  init(fieldDataId) {
+    return request.get('/wiki/page/init', { params: { fieldDataId } })
   }
 }
 
 export default {
   wikiMainApi,
   wikiMainDataApi,
-  wikiDataApi
+  wikiDataApi,
+  wikiPageApi
 }

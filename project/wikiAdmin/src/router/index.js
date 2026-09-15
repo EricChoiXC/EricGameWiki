@@ -175,6 +175,13 @@ const router = createRouter({
           name: 'WikiDataEdit',
           component: () => import('@/views/wiki/WikiDataEditView.vue'),
           meta: { title: '编辑数据' }
+        },
+        // wiki 页面维护（限图鉴类、文档类数据项）
+        {
+          path: 'admin/wiki/:mainId/data-item/:dataId/page',
+          name: 'WikiPageMaintain',
+          component: () => import('@/views/wiki/WikiPageView.vue'),
+          meta: { title: 'wiki 页面维护' }
         }
       ]
     },

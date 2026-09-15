@@ -108,6 +108,21 @@ const props = defineProps({
   multi: {
     type: Boolean,
     default: false
+  },
+  /** 上传结束后的回调函数（docs/common/前端公共组件.md 附件组件） */
+  uploadCallback: {
+    type: Function,
+    default: null
+  },
+  /** 确认上传文件到触发后端上传接口中间的校验函数；函数不为空时必须返回 true 才能继续上传 */
+  uploadValidate: {
+    type: Function,
+    default: null
+  },
+  /** 删除结束后的回调函数 */
+  deleteCallback: {
+    type: Function,
+    default: null
   }
 })
 
@@ -193,6 +208,10 @@ function beforeUpload(file) {
     ElMessage.error(buildFileSizeTip(file, props.maxSize))
     return false
   }
+  // uploadValidate：确认上传到触发后端接口前的自定义校验，必须返回 true 才继续
+  if (typeof props.uploadValidate === 'function' && props.uploadValidate(file) !== true) {
+    return false
+  }
   return true
 }
 
@@ -208,8 +227,12 @@ async function handleUpload({ file }) {
     formData.append('fieldModelId', props.fieldModelId)
     formData.append('fieldKey', props.fieldKey)
     const res = await attachmentApi.upload(formData)
+    const result = { fieldId: res.data, file }
     ElMessage.success('上传成功')
-    emit('upload', { fieldId: res.data, file })
+    emit('upload', result)
+    if (typeof props.uploadCallback === 'function') {
+      props.uploadCallback(result)
+    }
     // 重新拉取列表以反映最新状态
     await loadList()
   } finally {
@@ -253,8 +276,12 @@ async function onRemove(index, row) {
   removingId.value = row.fieldId
   try {
     await attachmentApi.remove(row.fieldId)
+    const result = { fieldId: row.fieldId, index }
     ElMessage.success('删除成功')
-    emit('delete', { fieldId: row.fieldId, index })
+    emit('delete', result)
+    if (typeof props.deleteCallback === 'function') {
+      props.deleteCallback(result)
+    }
     await loadList()
   } finally {
     removingId.value = ''
@@ -350,3 +377,4 @@ defineExpose({ loadList, files })
   }
 }
 </style>
+

@@ -1,9 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 // 路由 history base 为 "/"（AGENTS.md 第 5 章）
 const router = createRouter({
   history: createWebHistory('/'),
   routes: [
+    // 登录页（独立全屏页，不走 AdminLayout；未登录访问其他页面时重定向至此）
+    {
+      path: '/login',
+      name: 'Login',
+      component: () => import('@/views/org/LoginView.vue'),
+      meta: { title: '登录' }
+    },
     {
       path: '/',
       component: () => import('@/layouts/AdminLayout.vue'),
@@ -191,6 +199,23 @@ const router = createRouter({
       component: () => import('@/views/NotFoundView.vue')
     }
   ]
+})
+
+// -----------------------------------------------------------------------------
+// 全局登录守卫：仅 /login 公开，其余页面未登录一律重定向登录页并携带回跳地址
+// -----------------------------------------------------------------------------
+router.beforeEach((to) => {
+  const userStore = useUserStore()
+  if (to.path === '/login') {
+    if (userStore.isLogin) {
+      return { path: '/home' }
+    }
+    return true
+  }
+  if (!userStore.isLogin) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
+  return true
 })
 
 export default router

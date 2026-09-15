@@ -51,12 +51,16 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { userApi } from '@/api/org'
+import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 
 const visible = defineModel('visible', { type: Boolean, default: false })
 
+const router = useRouter()
+const appStore = useAppStore()
 const userStore = useUserStore()
 
 const formRef = ref(null)
@@ -102,9 +106,11 @@ async function onConfirm() {
     })
     ElMessage.success('密码修改成功，即将自动登出')
     visible.value = false
-    // 业务逻辑第 5 条：保存修改后自动登出
+    // 业务逻辑第 5 条：保存修改后自动登出，并回到登录页
     setTimeout(() => {
       userStore.logout()
+      appStore.closeAll()
+      router.push('/login')
     }, 800)
   } finally {
     loading.value = false

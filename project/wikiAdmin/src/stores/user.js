@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
 import { getToken, setToken } from '@/api/request'
-import { userApi } from '@/api/org'
-import { PERMISSION_CODE } from '@/utils/constants'
 
 /**
  * 当前登录用户状态
@@ -11,24 +9,33 @@ import { PERMISSION_CODE } from '@/utils/constants'
  *  - 页面按钮显隐基于权限码预判断（admin-org::USER / admin-org::ROLE）
  *  - 预判断不可替代后端最终鉴权（docs/common/接口公共规范.md 第 3.2 章）
  *
- * 说明：登录流程尚未接入前，permissions 默认包含全部权限码，
- *       以保证管理后台在开发阶段按钮可见；登录接口就绪后由 initUser() 覆盖。
+ * 说明：用户信息与权限列表在登录成功时由 LoginView 写入并持久化到
+ *       localStorage（与 token 同生命周期），刷新后从此处恢复；
+ *       后端暂无 current 用户查询接口，故不保存过期快照以外的来源。
  */
+const USER_CACHE_KEY = 'wikiAdminUser'
+
+function loadCachedUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_CACHE_KEY) || 'null')
+  } catch {
+    return null
+  }
+}
+
 export const useUserStore = defineStore('user', {
-  state: () => ({
-    token: getToken(),
-    userInfo: null,
-    permissions: [
-      PERMISSION_CODE.USER,
-      PERMISSION_CODE.ROLE,
-      PERMISSION_CODE.ATTACHMENT_ADMIN,
-      PERMISSION_CODE.WIKI_ADMIN
-    ]
-  }),
+  state: () => {
+    const cached = loadCachedUser()
+    return {
+      token: getToken(),
+      userInfo: cached?.userInfo || null,
+      permissions: Array.isArray(cached?.permissions) ? cached.permissions : []
+    }
+  },
 
   getters: {
     isLogin: (state) => !!state.token,
-    nickname: (state) => state.userInfo?.fieldName || '管理员'
+    nickname: (state) => state.userInfo?.fieldName || ''
   },
 
   actions: {
@@ -61,26 +68,29 @@ export const useUserStore = defineStore('user', {
     },
 
     /**
-     * 设置用户信息与权限列表
+     * 设置用户信息并持久化
      */
-    setUser(userInfo, permissions = []) {
-      this.userInfo = userInfo
-      this.permissions = permissions && permissions.length > 0 ? permissions : this.permissions
+    setUser(userInfo) {
+      this.userInfo = userInfo || null
+      this.persist()
     },
 
     /**
-     * 拉取当前用户信息（登录态下调用）
+     * 设置权限列表并持久化
      */
-    async initUser() {
-      if (!this.token) return
-      try {
-        const res = await userApi.load('current')
-        if (res?.data) {
-          this.setUser(res.data, res.map?.permissions)
-        }
-      } catch {
-        // 拉取失败不阻塞页面渲染
-      }
+    setPermissions(permissions) {
+      this.permissions = Array.isArray(permissions) ? permissions : []
+      this.persist()
+    },
+
+    /**
+     * 持久化用户信息与权限列表（刷新后由 state 初始化恢复）
+     */
+    persist() {
+      localStorage.setItem(
+        USER_CACHE_KEY,
+        JSON.stringify({ userInfo: this.userInfo, permissions: this.permissions })
+      )
     },
 
     /**
@@ -89,13 +99,9 @@ export const useUserStore = defineStore('user', {
     logout() {
       this.token = ''
       this.userInfo = null
-      this.permissions = [
-        PERMISSION_CODE.USER,
-        PERMISSION_CODE.ROLE,
-        PERMISSION_CODE.ATTACHMENT_ADMIN,
-        PERMISSION_CODE.WIKI_ADMIN
-      ]
+      this.permissions = []
       setToken('')
+      localStorage.removeItem(USER_CACHE_KEY)
     }
   }
 })

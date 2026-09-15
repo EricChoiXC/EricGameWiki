@@ -179,9 +179,10 @@ import {
   User,
   UserFilled
 } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
+import { authApi } from '@/api/org'
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 
 const route = useRoute()
@@ -194,6 +195,13 @@ const passwordDialogVisible = ref(false)
 
 // 初始化首页标签
 appStore.initHomeTab()
+
+// 密码已过期登录（/home?forceChangePwd=1）：自动弹出修改密码弹窗
+// docs/admin/用户和权限管理.md 业务逻辑第 5 条
+if (route.query.forceChangePwd === '1') {
+  passwordDialogVisible.value = true
+  ElMessage.warning('密码已过期，请先修改密码')
+}
 
 // 当前激活菜单
 const activeMenu = computed(() => appStore.activeTabId)
@@ -269,7 +277,7 @@ function onChangePassword() {
   passwordDialogVisible.value = true
 }
 
-// 登出：清空登录状态并返回首页（登录页就绪后改为跳转登录页）
+// 登出：调用后端登出接口并清空本地登录态，回到登录页
 function onLogout() {
   ElMessageBox.confirm('确定要登出吗？', '提示', {
     confirmButtonText: '确定',
@@ -277,9 +285,11 @@ function onLogout() {
     type: 'warning'
   })
     .then(() => {
+      // 后端登出失败不阻塞本地登出（如 token 已过期）
+      authApi.logout().catch(() => {})
       userStore.logout()
       appStore.closeAll()
-      router.push('/home')
+      router.push('/login')
     })
     .catch(() => {})
 }

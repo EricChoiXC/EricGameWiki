@@ -68,7 +68,7 @@ request.interceptors.response.use(
       case 401:
         ElMessage.error(message || '未登录或登录已过期')
         setToken('')
-        // 跳转登录页（待登录模块就绪后补充 router push）
+        redirectToLogin()
         break
       case 403:
         ElMessage.error(message || '无操作权限')
@@ -88,5 +88,22 @@ request.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// -----------------------------------------------------------------------------
+// 401 统一处理：清除登录态并跳转登录页
+// 动态导入 router，避免 request → router → stores/user → request 的循环依赖；
+// 已在登录页时仅提示（如密码错误），不再跳转以免循环
+// -----------------------------------------------------------------------------
+function redirectToLogin() {
+  import('@/router')
+    .then(({ default: router }) => {
+      const current = router.currentRoute.value
+      if (current.path === '/login') {
+        return
+      }
+      router.push({ path: '/login', query: { redirect: current.fullPath } })
+    })
+    .catch(() => {})
+}
 
 export default request

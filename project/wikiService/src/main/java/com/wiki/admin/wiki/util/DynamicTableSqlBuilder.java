@@ -200,7 +200,7 @@ public final class DynamicTableSqlBuilder {
      *
      * @param sql        SQL 构建器
      * @param details    明细行列表
-     * @param fixedNames 固定列简称集合（重名时拒绝）
+     * @param fixedNames 固定列简称集合（重名时跳过，固定列物理列由调用方生成）
      */
     private static void appendDynamicColumns(StringBuilder sql, List<WikiDataDetailDo> details,
                                              Set<String> fixedNames) {
@@ -208,10 +208,9 @@ public final class DynamicTableSqlBuilder {
         for (WikiDataDetailDo detail : details) {
             validateDetail(detail);
             String dataName = detail.getDataName();
-            // 固定列重名校验（图鉴类 name/code 由后端自动补充，明细行不应再出现）
+            // 固定列（图鉴类 name/code）由后端自动补充并已生成物理列，明细行跳过
             if (fixedNames.contains(dataName)) {
-                throw new BusinessException(ErrorCode.BAD_REQUEST,
-                        "明细行简称与固定列重名: " + dataName);
+                continue;
             }
             // 重复列名校验
             if (!seen.add(dataName)) {

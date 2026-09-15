@@ -1,9 +1,10 @@
 package com.wiki.admin.wiki.dao.dynamic;
 
 import com.wiki.admin.wiki.dao.dynamic.WikiDynamicDataDao;
-import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
+import org.apache.ibatis.scripting.xmltags.TextSqlNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
@@ -291,7 +292,7 @@ public class WikiDynamicDataDaoImpl implements WikiDynamicDataDao {
         MappedStatement.Builder builder = new MappedStatement.Builder(
                 configuration,
                 statementId,
-                new StaticSqlSource(configuration, sql),
+                new DynamicSqlSource(configuration, new TextSqlNode(sql)),
                 kind.commandType);
         // 通过 ResultMap 设置返回类型，Map 查询走 MyBatis 默认的自动列名映射
         org.apache.ibatis.mapping.ResultMap resultMap = new org.apache.ibatis.mapping.ResultMap.Builder(

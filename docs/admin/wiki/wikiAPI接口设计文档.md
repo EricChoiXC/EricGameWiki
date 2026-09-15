@@ -679,6 +679,38 @@
 
 **响应报文**：`data` 含该数据项的数据明细列表（显示信息可选源）和所有包含该数据项的关联类数据项列表（显示字段可选源）。
 
+```json
+{
+  "success": true,
+  "data": {
+    "dataItem": {
+      "fieldId": "数据项id",
+      "fieldName": "道具",
+      "fieldDataName": "item",
+      "fieldDataType": "data",
+      "details": [
+        {"dataName": "name", "name": "名称", "type": "text", "fieldKey": "fieldName"},
+        {"dataName": "code", "name": "编号", "type": "text", "fieldKey": "fieldCode"},
+        {"dataName": "price", "name": "价格", "type": "number", "fieldKey": "fieldPrice"}
+      ]
+    },
+    "joinItems": [
+      {
+        "fieldId": "关联项id",
+        "fieldName": "敌人掉落道具",
+        "fieldDataName": "drop",
+        "fieldDataType": "join",
+        "details": [
+          {"dataName": "enemy", "name": "敌人", "type": "join", "fieldKey": "fieldEnemyId"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+> `details[].fieldKey` 为 wiki 页面配置 `field_wiki_page` 中 `fields` 数组使用的属性键（小驼峰，type=join 的明细为 `field${DataName}Id`）。文档类数据项无 `field_data_json` 明细，`details` 固定为 `fieldName`（标题）/ `fieldCode`（编号）/ `fieldContext`（内容）。
+
 ---
 
 ## 8. 文档同步清单

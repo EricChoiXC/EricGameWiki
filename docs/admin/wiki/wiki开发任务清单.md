@@ -215,6 +215,7 @@ wiki 模块开发分为三期，每期可独立验收：
 
 ### TASK-W3-01 实现 wiki 页面维护 Service / Controller
 
+- **状态**: 已完成（2026-09-15）
 - **来源文档**: [wiki业务逻辑.md](wiki业务逻辑.md) 6.4、[wikiAPI接口设计文档.md](wikiAPI接口设计文档.md) 7
 - **前置依赖**: TASK-W2-02
 - **任务内容**: `IWikiPageService`/`WikiPageServiceImpl`（load/save/init）；init 返回显示信息可选源（本数据项明细 + 包含该数据项的关联类数据项）；save 保存 `fieldWikiPage` blob json，唯一约束 `fieldDataId`；`WikiPageController`（`@RequestMapping("/api/v1/admin/wiki/page")`）

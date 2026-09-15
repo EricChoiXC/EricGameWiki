@@ -23,6 +23,9 @@ public final class WikiConstants {
     /** 数据项类型：文档类 */
     public static final String DATA_TYPE_DOC = "doc";
 
+    /** 页面配置显示信息来源：本数据项明细（displayInfos.type） */
+    public static final String PAGE_SOURCE_SELF = "self";
+
     /** 状态：开启 */
     public static final int STATUS_ENABLED = 1;
     /** 状态：停用 */

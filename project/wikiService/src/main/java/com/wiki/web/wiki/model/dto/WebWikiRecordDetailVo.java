@@ -31,4 +31,10 @@ public class WebWikiRecordDetailVo {
 
     /** 引用本记录的关联项记录，键为关联类数据项 id，值为关联记录列表 */
     private Map<String, List<WebWikiRecordVo>> relatedRecords;
+
+    /** 本数据项字段元数据（fieldKey → name），用于字段值表显示名 */
+    private List<WebWikiDetailVo> details;
+
+    /** 关联类数据项元数据，键为关联类数据项 id，值为数据项信息与字段元数据 */
+    private Map<String, WebWikiJoinItemVo> joinItems;
 }

@@ -26,7 +26,7 @@
             <el-descriptions-item
               v-for="field in block.fields"
               :key="field"
-              :label="humanizeFieldKey(field)"
+              :label="fieldLabel(field, block)"
             >
               {{ resolveRecordField(record, field) }}
             </el-descriptions-item>
@@ -41,7 +41,7 @@
             <el-table-column
               v-for="field in block.fields"
               :key="field"
-              :label="humanizeFieldKey(field)"
+              :label="fieldLabel(field, block)"
               min-width="140"
             >
               <template #default="{ row }">
@@ -77,6 +77,8 @@ const dataItem = ref(null)
 const record = ref(null)
 const pageConfig = ref(null)
 const relatedRecords = ref({})
+const details = ref([])
+const joinItems = ref({})
 
 const isDoc = computed(() => dataItem.value?.fieldDataType === WIKI_DATA_TYPE.DOC)
 const isData = computed(() => dataItem.value?.fieldDataType === WIKI_DATA_TYPE.DATA)
@@ -105,12 +107,32 @@ const renderBlocks = computed(() => {
     const ordered = displayFields.find((f) => f.fieldDataId === info.fieldDataId)
     const fields = ordered?.fields?.length ? ordered.fields : (info.fields || [])
     if (fields.length > 0) {
-      blocks.push({ type: PAGE_SOURCE_TYPE.JOIN, fieldDataId: info.fieldDataId, title: '关联信息', fields })
+      blocks.push({
+        type: PAGE_SOURCE_TYPE.JOIN,
+        fieldDataId: info.fieldDataId,
+        title: joinItems.value[info.fieldDataId]?.fieldName || '关联信息',
+        fields
+      })
     }
   }
 
   return blocks
 })
+
+/**
+ * 字段显示名：优先取数据项字段元数据（field_data_json 的 name），
+ * 未命中时回退到 humanizeFieldKey 兜底。
+ * @param {string} fieldKey 属性键
+ * @param {Object} block 渲染块
+ * @returns {string}
+ */
+function fieldLabel(fieldKey, block) {
+  const source = block?.type === PAGE_SOURCE_TYPE.JOIN
+    ? joinItems.value[block.fieldDataId]?.details
+    : details.value
+  const detail = source?.find((d) => d.fieldKey === fieldKey)
+  return detail?.name || humanizeFieldKey(fieldKey)
+}
 
 // 未配置页面配置时的兜底字段：名称/编号 + 全部动态列
 function buildDefaultFields() {
@@ -132,6 +154,8 @@ async function loadDetail() {
     record.value = data.record || null
     pageConfig.value = data.pageConfig || null
     relatedRecords.value = data.relatedRecords || {}
+    details.value = data.details || []
+    joinItems.value = data.joinItems || {}
   } finally {
     loading.value = false
   }

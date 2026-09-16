@@ -73,7 +73,13 @@ export const wikiRecordApi = {
    * @param {string} fieldDataName 数据项简称
    * @param {string} fieldId 明细记录 id
    * @returns 响应 data 为 WebWikiRecordDetailVo
-   *   { dataItem, record, pageConfig: { displayInfos[], displayFields[] }, relatedRecords }
+   *   {
+   *     dataItem, record,
+   *     pageConfig: { displayInfos[], displayFields[] },
+   *     relatedRecords,
+   *     details: [{ dataName, name, type, fieldKey }],
+   *     joinItems: { [dataItemId]: { fieldId, fieldName, fieldDataName, fieldDataType, details[] } }
+   *   }
    */
   load(fieldSimpleName, fieldDataName, fieldId) {
     return request.get('/data-item/load', {

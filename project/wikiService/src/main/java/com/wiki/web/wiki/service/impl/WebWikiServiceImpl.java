@@ -29,6 +29,8 @@ import com.wiki.common.model.response.ListResult;
 import com.wiki.common.util.JsonUtil;
 import com.wiki.common.util.StringUtil;
 import com.wiki.web.wiki.model.dto.WebWikiDataItemVo;
+import com.wiki.web.wiki.model.dto.WebWikiDetailVo;
+import com.wiki.web.wiki.model.dto.WebWikiJoinItemVo;
 import com.wiki.web.wiki.model.dto.WebWikiProjectVo;
 import com.wiki.web.wiki.model.dto.WebWikiRecordDetailVo;
 import com.wiki.web.wiki.model.dto.WebWikiRecordListVo;
@@ -178,7 +180,9 @@ public class WebWikiServiceImpl implements IWebWikiService {
         vo.setDataItem(toDataItemVo(dataItem));
         vo.setRecord(toRecordVo(record));
         vo.setPageConfig(loadPageConfig(dataItem.getFieldId()));
-        vo.setRelatedRecords(buildRelatedRecords(main, dataItem, fieldId));
+        vo.setRelatedRecords(buildRelatedRecords(dataItem, fieldId));
+        vo.setDetails(buildSelfDetails(dataItem));
+        vo.setJoinItems(buildJoinItems(dataItem));
         return vo;
     }
 
@@ -235,14 +239,9 @@ public class WebWikiServiceImpl implements IWebWikiService {
      * 遍历同项目关联类数据项，其 {@code field_data_json} 中任一 {@code type=join}
      * 明细的目标等于本数据项 id 时，按该关联列值等于本记录 id 过滤查询。
      */
-    private Map<String, List<WebWikiRecordVo>> buildRelatedRecords(WikiMainDo main, WikiMainDataDo dataItem,
-                                                                   String recordId) {
+    private Map<String, List<WebWikiRecordVo>> buildRelatedRecords(WikiMainDataDo dataItem, String recordId) {
         Map<String, List<WebWikiRecordVo>> related = new LinkedHashMap<>();
-        for (WikiMainDataDo sibling : wikiMainDataDao.selectByMainId(dataItem.getFieldMainId())) {
-            if (sibling.getFieldId().equals(dataItem.getFieldId())
-                    || !WikiConstants.DATA_TYPE_JOIN.equals(sibling.getFieldDataType())) {
-                continue;
-            }
+        for (WikiMainDataDo sibling : referencingJoinItems(dataItem)) {
             for (WikiDataDetailDo detail : DynamicTableSqlBuilder.parseDetails(sibling.getFieldDataJson())) {
                 if (!WikiConstants.DATA_TYPE_JOIN.equals(detail.getType())
                         || !dataItem.getFieldId().equals(detail.getJoin())) {
@@ -255,6 +254,98 @@ public class WebWikiServiceImpl implements IWebWikiService {
             }
         }
         return related;
+    }
+
+    // ===== 内部：字段元数据 =====
+
+    /**
+     * 本数据项字段元数据（字段值表显示名）。图鉴类解析 {@code field_data_json}；
+     * 文档类无明细定义，按数据库设计 4.3 固定列合成标题/编号/内容。
+     */
+    private List<WebWikiDetailVo> buildSelfDetails(WikiMainDataDo dataItem) {
+        if (WikiConstants.DATA_TYPE_DOC.equals(dataItem.getFieldDataType())) {
+            return List.of(
+                    buildDetailVo("name", "标题", "text"),
+                    buildDetailVo("code", "编号", "text"),
+                    buildDetailVo("context", "内容", "blob"));
+        }
+        List<WebWikiDetailVo> vos = new ArrayList<>();
+        for (WikiDataDetailDo detail : DynamicTableSqlBuilder.parseDetails(dataItem.getFieldDataJson())) {
+            vos.add(buildDetailVo(detail));
+        }
+        return vos;
+    }
+
+    /**
+     * 所有引用本数据项的关联类数据项元数据，键为关联类数据项 id。
+     */
+    private Map<String, WebWikiJoinItemVo> buildJoinItems(WikiMainDataDo dataItem) {
+        Map<String, WebWikiJoinItemVo> items = new LinkedHashMap<>();
+        for (WikiMainDataDo sibling : referencingJoinItems(dataItem)) {
+            WebWikiJoinItemVo item = new WebWikiJoinItemVo();
+            item.setFieldId(sibling.getFieldId());
+            item.setFieldName(sibling.getFieldName());
+            item.setFieldDataName(sibling.getFieldDataName());
+            item.setFieldDataType(sibling.getFieldDataType());
+            List<WebWikiDetailVo> details = new ArrayList<>();
+            for (WikiDataDetailDo detail : DynamicTableSqlBuilder.parseDetails(sibling.getFieldDataJson())) {
+                details.add(buildDetailVo(detail));
+            }
+            item.setDetails(details);
+            items.put(sibling.getFieldId(), item);
+        }
+        return items;
+    }
+
+    /**
+     * 同项目内引用本数据项的关联类数据项列表。
+     */
+    private List<WikiMainDataDo> referencingJoinItems(WikiMainDataDo dataItem) {
+        List<WikiMainDataDo> siblings = new ArrayList<>();
+        for (WikiMainDataDo sibling : wikiMainDataDao.selectByMainId(dataItem.getFieldMainId())) {
+            if (sibling.getFieldId().equals(dataItem.getFieldId())
+                    || !WikiConstants.DATA_TYPE_JOIN.equals(sibling.getFieldDataType())) {
+                continue;
+            }
+            for (WikiDataDetailDo detail : DynamicTableSqlBuilder.parseDetails(sibling.getFieldDataJson())) {
+                if (WikiConstants.DATA_TYPE_JOIN.equals(detail.getType())
+                        && dataItem.getFieldId().equals(detail.getJoin())) {
+                    siblings.add(sibling);
+                    break;
+                }
+            }
+        }
+        return siblings;
+    }
+
+    /**
+     * 明细行 → 字段元数据：{@code dataName}（简称）、{@code name}（显示名）、
+     * {@code type}（类型）、{@code fieldKey}（属性键）。
+     */
+    private WebWikiDetailVo buildDetailVo(WikiDataDetailDo detail) {
+        WebWikiDetailVo vo = new WebWikiDetailVo();
+        vo.setDataName(detail.getDataName());
+        vo.setName(detail.getName());
+        vo.setType(detail.getType());
+        vo.setFieldKey(toFieldKey(detail.getDataName(), detail.getType()));
+        return vo;
+    }
+
+    private WebWikiDetailVo buildDetailVo(String dataName, String name, String type) {
+        WebWikiDetailVo vo = new WebWikiDetailVo();
+        vo.setDataName(dataName);
+        vo.setName(name);
+        vo.setType(type);
+        vo.setFieldKey(toFieldKey(dataName, type));
+        return vo;
+    }
+
+    /**
+     * 明细行 → 属性键：type=join 生成 {@code field${DataName}Id}，其余 {@code field${DataName}}。
+     */
+    private String toFieldKey(String dataName, String type) {
+        String prefix = "field" + upperFirst(dataName);
+        return WikiConstants.DATA_TYPE_JOIN.equals(type) ? prefix + "Id" : prefix;
     }
 
     /**

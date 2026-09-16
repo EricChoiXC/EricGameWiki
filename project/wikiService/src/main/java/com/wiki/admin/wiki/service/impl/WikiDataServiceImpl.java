@@ -118,7 +118,7 @@ public class WikiDataServiceImpl implements IWikiDataService {
             return loadJoinRecord(wikiMain, meta, tableName, fieldId);
         }
         List<Map<String, Object>> rows = wikiDynamicDataDao.selectByCondition(
-                tableName, null, null, "field_id = #{id}", null, 0, 1, false,
+                tableName, null, null, "field_id = #{params.id}", null, 0, 1, false,
                 Map.of(ROW_ID_PARAM, fieldId));
         if (rows.isEmpty()) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "数据明细不存在");
@@ -265,10 +265,10 @@ public class WikiDataServiceImpl implements IWikiDataService {
         List<Map<String, Object>> rows;
         if (joinQuery.getJoinClauses().isEmpty()) {
             rows = wikiDynamicDataDao.selectByCondition(tableName, null, null,
-                    "field_id = #{id}", null, 0, 1, false, Map.of(ROW_ID_PARAM, fieldId));
+                    "field_id = #{params.id}", null, 0, 1, false, Map.of(ROW_ID_PARAM, fieldId));
         } else {
             rows = wikiDynamicDataDao.selectByCondition(tableName, joinQuery.getColumnsSql(),
-                    joinQuery.getJoinClauses(), "base.field_id = #{id}", null, 0, 1, false,
+                    joinQuery.getJoinClauses(), "base.field_id = #{params.id}", null, 0, 1, false,
                     Map.of(ROW_ID_PARAM, fieldId));
         }
         if (rows.isEmpty()) {
@@ -477,7 +477,7 @@ public class WikiDataServiceImpl implements IWikiDataService {
 
     private void ensureRecordExists(String tableName, String id) {
         long count = wikiDynamicDataDao.countByCondition(tableName, null,
-                "field_id = #{id}", Map.of(ROW_ID_PARAM, id));
+                "field_id = #{params.id}", Map.of(ROW_ID_PARAM, id));
         if (count == 0) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "数据明细不存在：" + id);
         }
@@ -499,7 +499,7 @@ public class WikiDataServiceImpl implements IWikiDataService {
             throw new BusinessException(ErrorCode.NOT_FOUND, "关联目标数据项表不存在：" + targetTable);
         }
         long count = wikiDynamicDataDao.countByCondition(targetTable, null,
-                "field_id = #{id}", Map.of(ROW_ID_PARAM, value));
+                "field_id = #{params.id}", Map.of(ROW_ID_PARAM, value));
         if (count == 0) {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "关联数据不存在：" + value);
         }

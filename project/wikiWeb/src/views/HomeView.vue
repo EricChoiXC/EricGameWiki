@@ -51,7 +51,7 @@ async function loadProjects() {
   loading.value = true
   try {
     const res = await wikiMainApi.list(keyword.value)
-    projects.value = res.data || []
+    projects.value = res.list || []
   } finally {
     loading.value = false
   }

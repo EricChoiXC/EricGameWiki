@@ -63,9 +63,11 @@ const isDoc = computed(() => dataItem.value?.fieldDataType === WIKI_DATA_TYPE.DO
 
 const nameLabel = computed(() => (isDoc.value ? '文档标题' : '数据项名称'))
 
-const keywordPlaceholder = computed(() =>
-  isData.value ? '数据项名称 / 数据项编号' : '文档标题'
-)
+const keywordPlaceholder = computed(() => {
+  if (isData.value) return '数据项名称 / 数据项编号'
+  if (isDoc.value) return '文档标题'
+  return '数据项编号'
+})
 
 function dataTypeLabel(type) {
   return WIKI_DATA_TYPE_OPTIONS.find((opt) => opt.value === type)?.label || type || '-'

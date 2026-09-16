@@ -83,7 +83,7 @@ async function loadDataItems() {
       keyword: keyword.value,
       fieldDataType: fieldDataType.value
     })
-    dataItems.value = res.data || []
+    dataItems.value = res.list || []
   } finally {
     loading.value = false
   }

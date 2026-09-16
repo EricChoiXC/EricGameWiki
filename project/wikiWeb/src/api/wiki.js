@@ -20,7 +20,7 @@ export const wikiMainApi = {
   /**
    * 首页项目列表：关键字模糊匹配中文名称、英文名称、日文名称、简称，仅返回开启项目，不分页。
    * @param {string} [keyword]
-   * @returns 响应 data 为 WebWikiProjectVo[]（fieldId/fieldName/fieldEnName/fieldJpName/fieldSimpleName）
+   * @returns 响应 list 为 WebWikiProjectVo[]（fieldId/fieldName/fieldEnName/fieldJpName/fieldSimpleName）
    */
   list(keyword) {
     return request.get('/main/list', { params: { keyword } })
@@ -43,7 +43,7 @@ export const wikiDataItemApi = {
    * 项目数据项列表：关键字模糊匹配数据项名称、简称，可按数据项类型过滤，不分页。
    * @param {string} fieldSimpleName 项目简称
    * @param {Object} [params] { keyword, fieldDataType }
-   * @returns 响应 data 为 WebWikiDataItemVo[]（fieldId/fieldName/fieldDataName/fieldDataType）
+   * @returns 响应 list 为 WebWikiDataItemVo[]（fieldId/fieldName/fieldDataName/fieldDataType）
    */
   list(fieldSimpleName, params = {}) {
     return request.get('/data/list', { params: { fieldSimpleName, ...params } })

@@ -87,10 +87,11 @@ watch(
       wikiStore.setContext({
         simpleName,
         project: projectRes.data,
-        dataItems: itemsRes.data
+        dataItems: itemsRes.list
       })
     } catch {
-      // 项目不存在或已停用：保持空上下文，由页面自身处理
+      // 项目不存在或已停用：清空上下文，避免残留上一项目信息，由页面自身处理
+      wikiStore.clear()
     }
   },
   { immediate: true }

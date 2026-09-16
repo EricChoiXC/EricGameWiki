@@ -38,13 +38,15 @@ const router = createRouter({
           meta: { title: '数据项详情' }
         }
       ]
-    },
-    {
-      path: '/:pathMatch(.*)*',
-      name: 'NotFound',
-      component: () => import('@/views/NotFoundView.vue')
     }
   ]
+})
+
+// 除 /wiki/* 页面外，其余所有路径统一重定向到首页
+router.beforeEach((to) => {
+  if (!to.path.startsWith('/wiki/') && to.path !== '/home') {
+    return { path: '/home' }
+  }
 })
 
 // 路由切换时同步浏览器标签标题

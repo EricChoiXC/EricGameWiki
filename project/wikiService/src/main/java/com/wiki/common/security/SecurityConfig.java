@@ -35,6 +35,8 @@ public class SecurityConfig {
     private static final String[] PUBLIC_PATHS = {
             "/api/v1/admin/org/auth/login",
             "/api/v1/admin/org/auth/captcha",
+            // wiki 前台只读接口，无登录校验（docs/wiki/wiki访问.md）
+            "/api/v1/wiki/**",
             "/error"
     };
 

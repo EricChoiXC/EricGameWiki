@@ -63,27 +63,29 @@ request.interceptors.response.use(
     const status = error.response?.status
     const body = error.response?.data || {}
     const message = body.message || error.message
-
-    switch (status) {
-      case 401:
-        ElMessage.error(message || '未登录或登录已过期')
-        setToken('')
-        redirectToLogin()
-        break
-      case 403:
-        ElMessage.error(message || '无操作权限')
-        break
-      case 404:
-        ElMessage.error(message || '资源不存在')
-        break
-      case 409:
-        ElMessage.error(message || '数据冲突，请修改后重试')
-        break
-      case 500:
-        ElMessage.error(message || '服务器内部错误')
-        break
-      default:
-        ElMessage.error(message || '网络异常，请稍后重试')
+    // silent 请求（如头像回显）失败时不弹全局提示，由调用方自行回退；401 登录态处理不受 silent 影响
+    const silent = error.config?.silent === true
+    if (status === 401) {
+      ElMessage.error(message || '未登录或登录已过期')
+      setToken('')
+      redirectToLogin()
+    } else if (!silent) {
+      switch (status) {
+        case 403:
+          ElMessage.error(message || '无操作权限')
+          break
+        case 404:
+          ElMessage.error(message || '资源不存在')
+          break
+        case 409:
+          ElMessage.error(message || '数据冲突，请修改后重试')
+          break
+        case 500:
+          ElMessage.error(message || '服务器内部错误')
+          break
+        default:
+          ElMessage.error(message || '网络异常，请稍后重试')
+      }
     }
     return Promise.reject(error)
   }

@@ -10,7 +10,11 @@
       <div class="admin-layout__header-right">
         <el-dropdown>
           <span class="admin-layout__header-user">
-            <el-avatar :size="28" class="admin-layout__header-avatar">
+            <el-avatar
+              :size="28"
+              :src="headerAvatarUrl || undefined"
+              class="admin-layout__header-avatar"
+            >
               <el-icon><User /></el-icon>
             </el-avatar>
             <span>{{ userStore.nickname }}</span>
@@ -174,7 +178,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeft,
@@ -197,6 +201,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/org'
+import { attachmentApi } from '@/api/attachment'
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 
 const route = useRoute()
@@ -206,6 +211,42 @@ const userStore = useUserStore()
 
 const tabsScrollRef = ref(null)
 const passwordDialogVisible = ref(false)
+
+// 顶部当前用户头像（附件机制：field_model_name=user + field_model_id=用户id + field_key=avatar）
+const headerAvatarUrl = ref('')
+
+// 路由变化时重新加载头像（用户在个人编辑页更新头像后返回时同步）
+watch(
+  () => route.path,
+  () => loadHeaderAvatar()
+)
+
+onMounted(loadHeaderAvatar)
+onBeforeUnmount(revokeHeaderAvatarUrl)
+
+/**
+ * 加载当前登录用户的头像
+ * 走附件按关联下载接口（field_model_name=user + field_model_id=用户id + field_key=avatar），
+ * 仅需登录态，普通用户无需附件管理员权限；无头像时后端 404，保持默认图标
+ */
+async function loadHeaderAvatar() {
+  const fieldModelId = userStore.userInfo?.fieldId
+  if (!fieldModelId) return
+  try {
+    const blob = await attachmentApi.downloadByModel('user', fieldModelId, 'avatar')
+    revokeHeaderAvatarUrl()
+    headerAvatarUrl.value = URL.createObjectURL(new Blob([blob]))
+  } catch {
+    // 无头像或下载失败仅保持默认图标，不阻断页面
+  }
+}
+
+function revokeHeaderAvatarUrl() {
+  if (headerAvatarUrl.value && headerAvatarUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(headerAvatarUrl.value)
+  }
+  headerAvatarUrl.value = ''
+}
 
 // 初始化首页标签
 appStore.initHomeTab()

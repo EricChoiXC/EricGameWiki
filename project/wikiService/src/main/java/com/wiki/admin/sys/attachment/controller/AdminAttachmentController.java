@@ -3,6 +3,7 @@ package com.wiki.admin.sys.attachment.controller;
 import com.wiki.admin.sys.attachment.model.dto.AdminAttachmentFileDo;
 import com.wiki.admin.sys.attachment.model.dto.AdminAttachmentListVo;
 import com.wiki.admin.sys.attachment.model.dto.AdminAttachmentMainDo;
+import com.wiki.admin.sys.attachment.properties.AttachmentProperties;
 import com.wiki.admin.sys.attachment.resolver.AdminAttachmentResolver;
 import com.wiki.admin.sys.attachment.service.IAdminAttachmentService;
 import com.wiki.common.model.request.ApiRequest;
@@ -28,8 +29,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * 附件 Controller，对应 {@code docs/admin/附件机制.md} 附件列表页面。
@@ -47,6 +50,7 @@ public class AdminAttachmentController {
 
     private final IAdminAttachmentService attachmentService;
     private final AdminAttachmentResolver attachmentResolver;
+    private final AttachmentProperties attachmentProperties;
 
     /**
      * 附件列表分页查询。
@@ -85,14 +89,32 @@ public class AdminAttachmentController {
     @GetMapping("/download")
     public ResponseEntity<Resource> download(@RequestParam("fieldId") String fieldId) {
         attachmentResolver.requireLogin(fieldId);
-        AdminAttachmentFileDo fileDo = attachmentService.loadForDownload(fieldId);
-        Path target = Paths.get(fileDo.getFieldFilePath());
-        // 若相对路径不含盘符，尝试从当前工作目录解析；实际物理文件由存储目录决定
-        Resource resource = new FileSystemResource(target);
-        if (!resource.exists()) {
-            // 尝试从存储根目录拼接解析
-            resource = new FileSystemResource(Paths.get(".", fileDo.getFieldFilePath()));
+        return downloadResource(attachmentService.loadForDownload(fieldId));
+    }
+
+    /**
+     * 按业务关联下载附件，取关联的第一条（如当前用户头像回显）。
+     * <p>
+     * 鉴权：仅要求登录态，不做权限过滤（与 /download 一致）；
+     * 无关联附件时返回 404，由前端回退默认图标。
+     */
+    @GetMapping("/downloadByModel")
+    public ResponseEntity<Resource> downloadByModel(@RequestParam("fieldModelName") String fieldModelName,
+                                                    @RequestParam("fieldModelId") String fieldModelId,
+                                                    @RequestParam(value = "fieldKey", required = false) String fieldKey) {
+        attachmentResolver.requireLogin(fieldModelId);
+        List<AdminAttachmentMainDo> mains = attachmentService.listByModel(fieldModelName, fieldModelId, fieldKey);
+        if (mains == null || mains.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
+        return downloadResource(attachmentService.loadForDownload(mains.get(0).getFieldId()));
+    }
+
+    /**
+     * 将附件文件元数据转为下载响应（download / downloadByModel 共用）。
+     */
+    private ResponseEntity<Resource> downloadResource(AdminAttachmentFileDo fileDo) {
+        Resource resource = new FileSystemResource(resolveFilePath(fileDo.getFieldFilePath()));
         String encodedName = URLEncoder.encode(
                 StringUtil.isEmpty(fileDo.getFieldFileName()) ? "download" : fileDo.getFieldFileName(),
                 StandardCharsets.UTF_8).replace("+", "%20");
@@ -100,6 +122,23 @@ public class AdminAttachmentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedName)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
+    }
+
+    /**
+     * 解析附件物理路径：绝对路径直接使用；相对路径与上传落盘规则一致，
+     * 优先按存储根目录（{@code wiki.attachment.storage-root}）拼接，再回退工作目录直连。
+     */
+    private Path resolveFilePath(String pathStr) {
+        Path path = Paths.get(pathStr);
+        if (path.isAbsolute()) {
+            return path;
+        }
+        Path underRoot = Paths.get(attachmentProperties.getStorageRoot(), pathStr);
+        if (Files.exists(underRoot)) {
+            return underRoot;
+        }
+        // 兼容历史数据：尝试从当前工作目录解析
+        return path;
     }
 
     /**

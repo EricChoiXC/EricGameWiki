@@ -45,6 +45,22 @@ export const attachmentApi = {
       params: { fieldId },
       responseType: 'blob'
     })
+  },
+
+  /**
+   * 按业务关联下载附件，取关联的第一条（如当前用户头像回显）
+   * @param {string} fieldModelName 关联对象模型名
+   * @param {string} fieldModelId 关联对象id
+   * @param {string} [fieldKey] 关联字段key
+   * @returns Blob 响应；无关联附件时后端返回 404
+   */
+  downloadByModel(fieldModelName, fieldModelId, fieldKey) {
+    return request.get('/attachment/downloadByModel', {
+      params: { fieldModelName, fieldModelId, fieldKey },
+      responseType: 'blob',
+      // 无关联附件时后端返回 404，属预期场景，不弹全局错误提示
+      silent: true
+    })
   }
 }
 

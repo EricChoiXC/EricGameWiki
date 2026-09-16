@@ -55,11 +55,11 @@ public class AdminAttachmentController {
     /**
      * 附件列表分页查询。
      * <p>
-     * 鉴权：要求 admin-attachment::ADMIN 权限（附件管理员可查看附件列表）。
+     * 鉴权：仅要求登录态，不做权限过滤（对应 docs/admin/附件机制.md 接口鉴权约定）。
      */
     @PostMapping("/list")
     public ApiResponse<AdminAttachmentListVo> list(@RequestBody ApiRequest<AdminAttachmentMainDo> request) {
-        attachmentResolver.requireAdmin();
+        attachmentResolver.requireLogin(null);
         ListResult<AdminAttachmentListVo> result = attachmentService.list(request);
         return ApiResponse.success(result.getRecords(), result.getQuery());
     }

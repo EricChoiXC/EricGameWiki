@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
  * <p>
  * 鉴权规则对应 {@code docs/admin/附件机制.md} 权限与接口约定：
  * <ul>
- *   <li>列表查询 / 系统配置维护：要求 admin-attachment::ADMIN 权限</li>
- *   <li>上传 / 下载：仅要求登录态，不做权限过滤</li>
+ *   <li>列表查询 / 上传 / 下载：仅要求登录态，不做权限过滤</li>
+ *   <li>系统配置维护：要求 admin-attachment::ADMIN 权限</li>
  *   <li>删除：限制为上传者本人或具备 admin-attachment::ADMIN 的用户</li>
  * </ul>
  *
@@ -45,7 +45,7 @@ public class AdminAttachmentResolver {
     /**
      * 要求当前用户具备附件管理员权限。
      * <p>
-     * 用于列表查询 / 系统配置维护接口。
+     * 用于系统配置维护接口。
      */
     public void requireAdmin() {
         String userId = currentUserId();
